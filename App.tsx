@@ -211,11 +211,6 @@ const App: React.FC = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-20 items-center">
           <div className="space-y-12">
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-4 px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-brand-accentLight uppercase tracking-[0.3em] backdrop-blur-md animate-in slide-in-from-left duration-700">
-                <LogoIcon className="w-5 h-5" light={true} />
-                TOTAL FACILITY SERVICES LLC
-              </div>
-              
               <h1 className="text-6xl lg:text-[100px] font-black text-white leading-[0.9] tracking-tighter">
                 Everything Your <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accentLight via-teal-200 to-white">
