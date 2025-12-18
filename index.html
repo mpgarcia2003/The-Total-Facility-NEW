@@ -11,11 +11,11 @@
           extend: {
             colors: {
               brand: {
-                dark: '#0f172a', // Slate 900 (Keep for high contrast elements)
-                darker: '#f8fafc', // Slate 50 (Main Light Background)
-                accent: '#0d9488', // Teal 600 (Darker for visibility on light bg)
-                accentLight: '#14b8a6', // Teal 500 (For buttons)
-                secondary: '#d97706', // Amber 600 (Darker for visibility)
+                dark: '#0f172a', // Slate 900
+                darker: '#f8fafc', // Slate 50
+                accent: '#0d9488', // Teal 600
+                accentLight: '#14b8a6', // Teal 500
+                secondary: '#d97706', // Amber 600
                 glass: 'rgba(255, 255, 255, 0.7)',
                 glassBorder: '#e2e8f0', // Slate 200
               },
@@ -41,12 +41,11 @@
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
       
       body {
-        background-color: #f8fafc; /* Slate 50 */
-        color: #0f172a; /* Slate 900 */
+        background-color: #f8fafc;
+        color: #0f172a;
         font-family: 'Inter', sans-serif;
       }
 
-      /* Custom Scrollbar */
       ::-webkit-scrollbar {
         width: 8px;
       }
@@ -70,17 +69,20 @@
   <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.559.0",
-    "html2canvas": "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.esm.js",
-    "@emailjs/browser": "https://cdn.jsdelivr.net/npm/@emailjs/browser@4.1.0/+esm"
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.561.0",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
+    "vite": "https://esm.sh/vite@^7.3.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "@emailjs/browser": "https://esm.sh/@emailjs/browser@^4.4.1"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
