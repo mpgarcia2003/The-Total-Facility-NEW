@@ -38,44 +38,33 @@ import {
   Clock,
   DollarSign,
   Minus,
-  AlertCircle
+  AlertCircle,
+  ChevronRight,
+  Calculator,
+  Calendar
 } from './components/ui/Icons';
 
 const EMAILJS_PUBLIC_KEY = "4ye26ZtWxpi6Pkk5f";
 const EMAILJS_SERVICE_ID = "service_srv6b3k"; 
 const EMAILJS_TEMPLATE_ID_VERIFY = "template_mtm1oef"; 
 
-// Custom Logo Component based on User's Graphic
 const LogoIcon = ({ className = "w-10 h-10", light = false }: { className?: string, light?: boolean }) => (
   <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="20" y="15" width="35" height="35" rx="4" fill={light ? "white" : "#cbd5e1"} fillOpacity={light ? "0.3" : "1"} />
-    <rect x="20" y="55" width="35" height="35" rx="4" fill={light ? "white" : "#94a3b8"} />
+    <rect x="20" y="15" width="20" height="20" rx="4" fill={light ? "white" : "#0d9488"} />
+    <rect x="20" y="55" width="20" height="20" rx="4" fill={light ? "white" : "#cbd5e1"} fillOpacity={light ? "0.3" : "1"} />
   </svg>
 );
 
-// Simple analytics helper
-const trackEvent = (eventName: string, params?: object) => {
-  if (typeof window.gtag === 'function') {
-    window.gtag('event', eventName, params);
-  }
-  console.log(`[Analytics] ${eventName}`, params);
-};
-
-declare global {
-  interface Window {
-    gtag: any;
-  }
-}
-
 const App: React.FC = () => {
   const [settings, setSettings] = useState<PricingSettings>(DEFAULT_PRICING_SETTINGS);
-  const [rooms, setRooms] = useState<RoomType[]>([]); 
+  const [rooms, setRooms] = useState<RoomType[]>(DEFAULT_ROOMS); 
   const [porters, setPorters] = useState<PorterService[]>(DEFAULT_PORTERS);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const [clientInfo, setClientInfo] = useState<ClientInfo>({
     name: '',
-    address: '',
+    address: '123 Sample Avenue, New York, NY', 
     email: '',
     phone: '',
     walkthroughDate: new Date().toISOString().split('T')[0]
@@ -84,7 +73,6 @@ const App: React.FC = () => {
   const [isSchedulerOpen, setIsSchedulerOpen] = useState(false);
   const [activeIndustryExplainer, setActiveIndustryExplainer] = useState<string | null>(null);
 
-  // --- PRICE LOCK STATE ---
   const [isQuoteUnlocked, setIsQuoteUnlocked] = useState(false);
   const [verificationStep, setVerificationStep] = useState<'email' | 'code'>('email');
   const [verificationEmail, setVerificationEmail] = useState('');
@@ -92,11 +80,10 @@ const App: React.FC = () => {
   const [inputCode, setInputCode] = useState('');
   const [isSendingCode, setIsSendingCode] = useState(false);
 
-  const industriesRef = useRef<HTMLElement>(null);
-  const processRef = useRef<HTMLElement>(null);
   const quoteSectionRef = useRef<HTMLDivElement>(null);
+  const industriesSectionRef = useRef<HTMLDivElement>(null);
+  const processSectionRef = useRef<HTMLDivElement>(null);
 
-  // Validation Logic
   const hasRooms = useMemo(() => rooms.some(r => r.quantity > 0), [rooms]);
   const hasAddress = useMemo(() => clientInfo.address.trim().length > 5, [clientInfo.address]);
   const isConfigComplete = hasRooms && hasAddress;
@@ -114,16 +101,13 @@ const App: React.FC = () => {
 
   const scrollTo = (ref: React.RefObject<HTMLElement | null>, e?: React.MouseEvent) => {
     if (e) e.preventDefault();
+    setIsMobileMenuOpen(false);
     const element = ref.current;
     if (element) {
       const offset = 100;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth"
-      });
-      trackEvent('scroll_to_section', { section: element.id });
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
     }
   };
 
@@ -140,7 +124,6 @@ const App: React.FC = () => {
         name: clientInfo.name || "Valued Client",
       }, EMAILJS_PUBLIC_KEY);
       setVerificationStep('code');
-      trackEvent('auth_code_requested', { email_domain: verificationEmail.split('@')[1] });
     } catch (error) {
       alert(`Access code for testing: ${code}`);
       setVerificationStep('code');
@@ -154,197 +137,209 @@ const App: React.FC = () => {
     if (inputCode === verificationCode) {
       setIsQuoteUnlocked(true);
       setClientInfo(prev => ({ ...prev, email: verificationEmail }));
-      trackEvent('quote_unlocked', { total: quote.grandTotal });
     } else {
       alert("Invalid code.");
       setInputCode('');
-      trackEvent('auth_failed');
     }
   };
 
-  const handleOpenExplainer = (id: string) => {
-    setActiveIndustryExplainer(id);
-    trackEvent('view_industry_explainer', { industry: id });
+  const resetApp = () => {
+    setRooms(DEFAULT_ROOMS);
+    setPorters(DEFAULT_PORTERS);
+    setClientInfo({
+      name: '',
+      address: '123 Sample Avenue, New York, NY', 
+      email: '',
+      phone: '',
+      walkthroughDate: new Date().toISOString().split('T')[0]
+    });
+    setIsQuoteUnlocked(false);
+    setVerificationStep('email');
+    setVerificationEmail('');
+    setVerificationCode('');
+    setInputCode('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-brand-accent selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-brand-accent selection:text-white overflow-x-hidden">
       
-      {/* GLOBAL HEADER */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'bg-white/95 backdrop-blur-xl shadow-xl py-3 border-b border-slate-100' : 'bg-transparent py-6'}`}>
+      {/* NAVIGATION BAR - REINSTATED & POLISHED */}
+      <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${isScrolled ? 'bg-white/95 backdrop-blur-2xl shadow-xl py-3 border-b border-slate-100' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <LogoIcon className="w-12 h-12 transition-transform group-hover:scale-110" light={!isScrolled} />
+          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <LogoIcon className="w-10 h-10 transition-transform group-hover:scale-110" light={false} />
             <div className="flex flex-col">
-              <span className={`font-black text-xl leading-none tracking-tight uppercase transition-colors duration-300 ${isScrolled ? 'text-slate-900' : 'text-white'}`}>
+              <span className={`font-black text-lg leading-none tracking-tight uppercase transition-colors duration-300 ${isScrolled ? 'text-slate-900' : 'text-white'}`}>
                 TOTAL FACILITY SERVICES LLC
               </span>
-              <span className={`text-[9px] tracking-[0.4em] font-black uppercase transition-opacity duration-300 ${isScrolled ? 'text-brand-accent opacity-100' : 'text-white opacity-60'}`}>Managed Precision</span>
+              <span className={`text-[8px] tracking-[0.4em] font-black uppercase transition-opacity duration-300 ${isScrolled ? 'text-brand-accent opacity-100' : 'text-white opacity-60'}`}>Managed Precision</span>
             </div>
           </div>
-          
-          <div className="hidden lg:flex items-center gap-10">
-            <a href="tel:8444543101" className={`flex items-center gap-2 text-sm font-black transition-colors ${isScrolled ? 'text-brand-accent' : 'text-white/90 hover:text-brand-accentLight'}`}>
-              <Phone size={16} /> (844) 454-3101
+
+          {/* Desktop Links */}
+          <div className="hidden lg:flex items-center gap-8">
+            <a href="tel:8444543101" className={`flex items-center gap-2 text-xs font-black transition-colors ${isScrolled ? 'text-slate-900' : 'text-white'}`}>
+              <Phone size={14} className="text-brand-accent" /> (844) 454-3101
             </a>
-            <button onClick={(e) => scrollTo(industriesRef, e)} className={`text-sm font-bold transition-colors ${isScrolled ? 'text-slate-600' : 'text-white/70'} hover:text-brand-accent`}>Industries</button>
-            <button onClick={(e) => scrollTo(processRef, e)} className={`text-sm font-bold transition-colors ${isScrolled ? 'text-slate-600' : 'text-white/70'} hover:text-brand-accent`}>Process</button>
-            <button 
-              onClick={(e) => scrollTo(quoteSectionRef, e)}
-              className="bg-brand-accent hover:bg-brand-accentLight text-white px-8 py-3.5 rounded-2xl text-xs font-black shadow-lg shadow-brand-accent/20 hover:-translate-y-0.5 active:translate-y-0 transition-all uppercase tracking-[0.15em]"
-            >
+            <button onClick={(e) => scrollTo(industriesSectionRef, e)} className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border rounded-lg transition-all ${isScrolled ? 'text-slate-600 border-slate-200 hover:border-brand-accent hover:text-brand-accent' : 'text-white border-white/20 hover:border-white'}`}>Industries</button>
+            <button onClick={(e) => scrollTo(processSectionRef, e)} className={`text-[10px] font-black uppercase tracking-widest transition-colors ${isScrolled ? 'text-slate-600 hover:text-brand-accent' : 'text-white/80 hover:text-white'}`}>Process</button>
+            <button onClick={(e) => scrollTo(quoteSectionRef, e)} className="bg-gradient-to-r from-brand-accent to-brand-accentLight hover:shadow-[0_0_20px_rgba(13,148,136,0.4)] text-white px-6 py-3 rounded-xl text-[10px] font-black shadow-lg transition-all uppercase tracking-widest">
               Get a Monthly Estimate
             </button>
           </div>
+
+          {/* Mobile Menu Toggle */}
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden p-2">
+            {isMobileMenuOpen ? <X className={isScrolled ? 'text-slate-900' : 'text-white'} /> : <div className="space-y-1.5"><div className={`w-6 h-0.5 ${isScrolled ? 'bg-slate-900' : 'bg-white'}`}></div><div className={`w-4 h-0.5 ${isScrolled ? 'bg-slate-900' : 'bg-white'}`}></div><div className={`w-6 h-0.5 ${isScrolled ? 'bg-slate-900' : 'bg-white'}`}></div></div>}
+          </button>
         </div>
+
+        {/* Mobile Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="absolute top-full left-0 right-0 bg-white shadow-2xl p-8 border-b border-slate-100 flex flex-col gap-6 lg:hidden animate-in slide-in-from-top-4 duration-300">
+            <button onClick={(e) => scrollTo(industriesSectionRef, e)} className="text-left font-black uppercase tracking-widest text-slate-600">Industries</button>
+            <button onClick={(e) => scrollTo(processSectionRef, e)} className="text-left font-black uppercase tracking-widest text-slate-600">Process</button>
+            <a href="tel:8444543101" className="flex items-center gap-3 font-black text-brand-accent"><Phone size={20} /> (844) 454-3101</a>
+            <button onClick={(e) => scrollTo(quoteSectionRef, e)} className="bg-brand-accent text-white py-5 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-accent/20">Get a Monthly Estimate</button>
+          </div>
+        )}
       </nav>
 
-      {/* HERO SECTION - ABOVE THE FOLD */}
-      <header className="relative min-h-[95vh] flex items-center pt-24 overflow-hidden bg-[#0f172a]">
+      {/* HERO SECTION */}
+      <header className="relative min-h-screen flex items-center pt-24 overflow-hidden bg-[#0f172a]">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-800"></div>
-          <div className="absolute top-1/4 right-0 w-[800px] h-[800px] bg-brand-accent/20 rounded-full blur-[160px] translate-x-1/3"></div>
-          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[140px] -translate-x-1/3"></div>
-          <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:40px_40px]"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800"></div>
+          <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-brand-accent/10 rounded-full blur-[160px] translate-x-1/3"></div>
+          <div className="absolute inset-0 opacity-5 [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:40px_40px]"></div>
         </div>
-
-        <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-20 items-center">
-          <div className="space-y-12">
-            <div className="space-y-6">
-              <h1 className="text-6xl lg:text-[100px] font-black text-white leading-[0.9] tracking-tighter">
-                Everything Your <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accentLight via-teal-200 to-white">
-                  Building Needs.
-                </span>
-              </h1>
-            </div>
-            
-            <p className="text-2xl text-slate-300 max-w-xl leading-relaxed font-medium">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-10">
+            <h1 className="text-7xl lg:text-[110px] font-black text-white leading-[0.85] tracking-tighter">
+              Everything <br />Your <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accentLight via-teal-200 to-white">Building Needs.</span>
+            </h1>
+            <p className="text-xl text-slate-400 max-w-lg leading-relaxed font-medium">
               Precision facility maintenance for NY, FL, NJ, & CT. Managed labor models delivered as a single, all-inclusive monthly budget.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-6">
-              <button 
-                onClick={(e) => scrollTo(quoteSectionRef, e)}
-                className="group px-12 py-6 bg-brand-accent hover:bg-brand-accentLight text-white font-black rounded-3xl shadow-2xl shadow-brand-accent/40 transition-all flex items-center justify-center gap-4 text-xl tracking-tight"
-              >
-                Build Monthly Budget <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />
+            <div className="flex flex-col sm:flex-row gap-5">
+              <button onClick={(e) => scrollTo(quoteSectionRef, e)} className="group px-10 py-5 bg-brand-accent hover:bg-brand-accentLight text-white font-black rounded-2xl shadow-xl shadow-brand-accent/20 transition-all flex items-center justify-center gap-4 text-lg">
+                Build Monthly Budget <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>
-              <button 
-                onClick={() => {
-                  setIsSchedulerOpen(true);
-                  trackEvent('request_assessment_click');
-                }}
-                className="px-12 py-6 bg-white/5 hover:bg-white/10 text-white font-black rounded-3xl border border-white/20 backdrop-blur-md transition-all text-xl"
-              >
+              <button onClick={() => setIsSchedulerOpen(true)} className="px-10 py-5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-black rounded-2xl transition-all text-lg">
                 Request Assessment
               </button>
             </div>
-
-            <div className="flex flex-wrap gap-10 pt-10 border-t border-white/5">
-              {[
-                { label: 'Fully Insured', icon: ShieldCheck },
-                { label: 'Tri-State Core', icon: MapPin },
-                { label: 'OSHA Certified', icon: CheckCircle2 }
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 text-slate-400">
-                  <item.icon size={20} className="text-brand-accent" />
-                  <span className="text-[11px] font-black uppercase tracking-[0.2em]">{item.label}</span>
-                </div>
-              ))}
+            
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-4 pt-8 border-t border-white/5">
+              <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <CheckCircle2 size={14} className="text-brand-accent" /> Fully Insured
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <MapPin size={14} className="text-brand-accent" /> Tri-State Core
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <ShieldCheck size={14} className="text-brand-accent" /> OSHA Certified
+              </div>
             </div>
           </div>
-
-          <div className="relative hidden lg:block group">
-            <div className="relative z-10 bg-gradient-to-tr from-brand-accent/30 to-transparent p-1.5 rounded-[4rem] shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]">
-              <img 
-                src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200" 
-                alt="Corporate Facility" 
-                className="rounded-[3.8rem] w-full h-[650px] object-cover"
-              />
-              <div className="absolute -bottom-10 -left-10 bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100 animate-float">
-                <div className="flex items-center gap-5">
-                  <div className="w-16 h-16 bg-brand-accent/10 rounded-2xl flex items-center justify-center text-brand-accent">
-                    <GraduationCap size={40} />
+          <div className="relative hidden lg:block">
+            <div className="relative z-10 p-2 rounded-[3rem] border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden group">
+              <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200" className="rounded-[2.8rem] w-full h-[600px] object-cover transition-transform duration-1000 group-hover:scale-110" alt="Facility Management" />
+              <div className="absolute bottom-10 -left-10 bg-white p-8 rounded-[2rem] shadow-2xl animate-float max-w-xs border border-slate-100">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600">
+                    <GraduationCap size={28} />
                   </div>
                   <div>
-                    <h4 className="font-black text-2xl text-slate-900 tracking-tight">35+ Years</h4>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Operational Precision</p>
+                    <div className="text-2xl font-black text-slate-900">35+ Years</div>
+                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Operational Precision</div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            {/* Decorative element */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-accent/20 rounded-full blur-3xl group-hover:bg-brand-accent/40 transition-colors"></div>
           </div>
-        </div>
-        
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-white/20 cursor-pointer transition-colors hover:text-white/40" onClick={(e) => scrollTo(industriesRef, e)}>
-          <ChevronDown size={40} />
         </div>
       </header>
 
-      {/* CORE INDUSTRIES */}
-      <section id="industries" ref={industriesRef} className="py-32 bg-white relative scroll-mt-24">
+      {/* SERVICE VERTICALS SECTION */}
+      <section ref={industriesSectionRef} className="py-32 bg-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-12 gap-20 items-center">
-            <div className="lg:col-span-5 space-y-8">
-              <h2 className="text-brand-accent text-sm font-black uppercase tracking-[0.4em]">Service Verticals</h2>
-              <h3 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter leading-[1.1]">
-                Demanding Spaces. <br />Expert Care.
-              </h3>
-              <p className="text-xl text-slate-600 leading-relaxed font-medium">
-                We specialize in sectors with strict compliance requirements. Every crew is background-checked and sector-specific.
+          <div className="grid lg:grid-cols-2 gap-24 items-center">
+            <div>
+              <span className="text-brand-accent text-xs font-black uppercase tracking-[0.4em] mb-6 block">Service Verticals</span>
+              <h2 className="text-6xl font-black text-slate-900 mb-8 leading-[0.95] tracking-tight">
+                Demanding <br />Spaces. <br />Expert Care.
+              </h2>
+              <p className="text-xl text-slate-500 max-w-md leading-relaxed font-medium mb-12">
+                We specialize in sectors with strict compliance requirements. Click a sector below to explore our all-inclusive maintenance strategies.
               </p>
-              <div className="pt-6 space-y-5">
+              
+              <div className="grid gap-8">
                 {[
-                  { id: 'education', title: 'Education & Schools', desc: 'Child-safe sanitation for tri-state campuses.', icon: GraduationCap },
-                  { id: 'cre', title: 'Commercial Office', desc: 'Class-A high-polish lobby & suite maintenance.', icon: Building2 },
-                  { id: 'healthcare', title: 'Clinical & Healthcare', desc: 'Sterile environment protocols and terminal cleaning.', icon: Stethoscope },
-                  { id: 'hoa', title: 'HOA & Residential', desc: 'Multi-site management for housing groups.', icon: Users }
+                  { id: 'education', icon: <GraduationCap size={20} />, title: "Education & Schools", desc: "Child-safe sanitation for tri-state campuses." },
+                  { id: 'cre', icon: <Building2 size={20} />, title: "Commercial Office", desc: "Class-A high-polish lobby & suite maintenance." },
+                  { id: 'healthcare', icon: <Stethoscope size={20} />, title: "Clinical & Healthcare", desc: "Sterile environment protocols and terminal cleaning." },
+                  { id: 'hoa', icon: <Users size={20} />, title: "HOA & Residential", desc: "Multi-site management for housing groups." }
                 ].map((item, i) => (
-                  <button 
-                    key={i} 
-                    onClick={() => handleOpenExplainer(item.id)}
-                    className="w-full flex gap-5 text-left items-center group p-6 rounded-3xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100"
-                  >
-                    <div className="w-12 h-12 rounded-2xl bg-brand-accent/5 flex items-center justify-center text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-all">
-                      <item.icon size={24} />
+                  <div key={i} onClick={() => setActiveIndustryExplainer(item.id)} className="flex items-center gap-6 group cursor-pointer transition-all hover:translate-x-1">
+                    <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-brand-accent transition-colors group-hover:bg-brand-accent group-hover:text-white">
+                      {item.icon}
                     </div>
-                    <div>
-                      <h4 className="font-black text-lg text-slate-900 tracking-tight">{item.title}</h4>
-                      <p className="text-sm text-slate-500 font-medium">{item.desc}</p>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-black text-slate-900 text-lg">{item.title}</h4>
+                        <span className="text-[10px] font-black text-brand-accent uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">View Model <ChevronRight size={12} /></span>
+                      </div>
+                      <p className="text-sm text-slate-400 font-medium">{item.desc}</p>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
             
-            <div className="lg:col-span-7 grid grid-cols-2 gap-8">
-              <div className="space-y-8 pt-16">
-                <div onClick={() => handleOpenExplainer('education')} className="bg-slate-50 p-10 rounded-[3rem] border border-slate-100 hover:shadow-2xl transition-all cursor-pointer group">
-                  <GraduationCap className="text-brand-accent mb-8 transition-transform group-hover:scale-110" size={50} />
-                  <h4 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">Charter Schools</h4>
-                  <p className="text-sm text-slate-500 leading-relaxed font-medium">Daily child-safe sanitation with zero-incident tracking.</p>
+            <div className="grid grid-cols-2 gap-6 relative">
+              <div className="space-y-6 pt-12">
+                <div onClick={() => setActiveIndustryExplainer('education')} className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-50 relative group overflow-hidden h-72 flex flex-col justify-between cursor-pointer hover:shadow-brand-accent/5 transition-all">
+                  <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600">
+                    <GraduationCap size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-black text-slate-900 mb-2">Education and Schools</h4>
+                    <p className="text-xs text-slate-400 font-bold leading-relaxed mb-4">Daily child-safe sanitation with zero-incident tracking.</p>
+                    <div className="text-[10px] font-black text-brand-accent uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      View Model <ChevronRight size={12} />
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-slate-900 p-10 rounded-[3rem] text-white overflow-hidden relative group">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/20 rounded-full blur-3xl group-hover:bg-brand-accent/40 transition-colors"></div>
-                  <Globe className="text-brand-accentLight mb-8 relative z-10" size={50} />
-                  <h4 className="text-2xl font-black mb-3 tracking-tight relative z-10">Regional Scale</h4>
-                  <p className="text-sm text-slate-400 leading-relaxed font-medium relative z-10">Seamlessly managing portfolios across NY, FL, NJ, & CT.</p>
+                <div className="bg-[#0f172a] p-10 rounded-[2.5rem] shadow-2xl text-white h-72 flex flex-col justify-between">
+                  <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-teal-400">
+                    <Globe size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-black mb-2">Regional Scale</h4>
+                    <p className="text-xs text-slate-400 font-bold leading-relaxed">Seamlessly managing portfolios across NY, FL, NJ, & CT.</p>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-8">
-                <div className="bg-brand-accent p-10 rounded-[3rem] text-white shadow-2xl shadow-brand-accent/30 group">
-                  <ShieldCheck className="text-white/80 mb-8 transition-transform group-hover:rotate-12" size={50} />
-                  <h4 className="text-2xl font-black mb-3 tracking-tight">Compliance</h4>
-                  <p className="text-sm text-white/80 leading-relaxed font-medium">Strict OSHA and EPA compliance reporting for every site visit.</p>
+              <div className="space-y-6">
+                <div className="bg-brand-accent p-10 rounded-[2.5rem] shadow-2xl shadow-brand-accent/30 text-white h-72 flex flex-col justify-between">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <ShieldCheck size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-black mb-2">Compliance</h4>
+                    <p className="text-xs text-white/70 font-bold leading-relaxed">Strict OSHA and EPA compliance reporting for every site visit.</p>
+                  </div>
                 </div>
-                <div onClick={() => handleOpenExplainer('healthcare')} className="bg-slate-50 p-10 rounded-[3rem] border border-slate-100 hover:shadow-2xl transition-all cursor-pointer group">
-                  <Zap className="text-brand-secondary mb-8 group-hover:animate-pulse" size={50} />
-                  <h4 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">Rapid Response</h4>
-                  <p className="text-sm text-slate-500 leading-relaxed font-medium">Dedicated account managers and 24/7 priority emergency support.</p>
+                <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-50 h-72 flex flex-col justify-between">
+                  <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-500">
+                    <Zap size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-black text-slate-900 mb-2">Rapid Response</h4>
+                    <p className="text-xs text-slate-400 font-bold leading-relaxed">Dedicated account managers and 24/7 priority emergency support.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -352,50 +347,66 @@ const App: React.FC = () => {
         </div>
       </section>
 
+      {/* PROCESS SECTION */}
+      <section ref={processSectionRef} className="py-32 bg-[#f8fafc] border-y border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 text-center mb-24">
+          <span className="text-brand-accent text-xs font-black uppercase tracking-[0.4em] mb-6 block">Our Execution Model</span>
+          <h2 className="text-5xl md:text-7xl font-black text-slate-900 mb-8 tracking-tighter">Managed Excellence.</h2>
+          <p className="text-slate-500 max-w-2xl mx-auto text-xl font-medium">How we deploy precision maintenance to your facility.</p>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12">
+          {[
+            { step: "01", icon: <Calculator size={28} />, title: "Precision Budgeting", desc: "Our algorithm creates a fixed-cost monthly labor plan tailored to your square footage." },
+            { step: "02", icon: <Calendar size={28} />, title: "Deployment Phase", desc: "Background-checked, sector-specific crews are trained on your site's compliance rules." },
+            { step: "03", icon: <ShieldCheck size={28} />, title: "Compliance Sync", desc: "Real-time auditing and reporting ensures strict OSHA/EPA sanitation standards." },
+            { step: "04", icon: <Clock size={28} />, title: "Ongoing Precision", desc: "A single monthly invoice covers all daily labor and periodic specialty work." }
+          ].map((item, i) => (
+            <div key={i} className="relative group p-10 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm transition-all hover:shadow-xl hover:-translate-y-2">
+              <div className="absolute top-6 right-10 text-5xl font-black text-slate-50 opacity-100 transition-colors group-hover:text-brand-accent group-hover:opacity-10 group-hover:scale-125 duration-500">
+                {item.step}
+              </div>
+              <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-brand-accent mb-8 transition-colors group-hover:bg-brand-accent group-hover:text-white">
+                {item.icon}
+              </div>
+              <h4 className="text-xl font-black text-slate-900 mb-4">{item.title}</h4>
+              <p className="text-sm text-slate-500 leading-relaxed font-medium">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* QUOTE ENGINE SECTION */}
-      <section id="quote-section" ref={quoteSectionRef} className="py-32 bg-white border-y border-slate-200 relative scroll-mt-24">
-        <div id="quote-content" className="max-w-6xl mx-auto px-6">
+      <section id="quote-section" ref={quoteSectionRef} className="py-32 bg-white relative scroll-mt-24">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-24">
-            <div className="inline-block px-5 py-2 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-black uppercase tracking-[0.3em] mb-6">Budgeting Engine v5.8</div>
             <h2 className="text-5xl md:text-7xl font-black text-slate-900 mb-8 tracking-tighter">Your Precision Budget</h2>
-            <p className="text-slate-500 max-w-2xl mx-auto text-2xl font-medium leading-relaxed">Everything is calculated using our bottom-up labor model. Transparent. Fixed. All-inclusive.</p>
+            <p className="text-slate-500 max-w-2xl mx-auto text-2xl font-medium">Transparent. Fixed. All-inclusive.</p>
           </div>
 
           <div className="grid lg:grid-cols-12 gap-16 items-start">
             <div className="lg:col-span-8 space-y-12">
-              {/* Step 1: Client Context */}
-              <div id="facility-context" className={`transition-all duration-700 border rounded-[3rem] p-12 shadow-sm ${hasAddress ? 'border-brand-accent/30 bg-white' : 'border-slate-200 bg-white ring-4 ring-brand-accent/5'}`}>
-                <h2 className="text-3xl font-black text-slate-900 mb-10 flex items-center justify-between tracking-tight">
+              <div className={`border rounded-[3rem] p-12 shadow-sm ${hasAddress ? 'border-brand-accent/30 bg-white' : 'border-slate-200 bg-white'}`}>
+                <h2 className="text-3xl font-black text-slate-900 mb-10 flex items-center justify-between">
                   <span className="flex items-center gap-4">
-                    <MapPin className={hasAddress ? 'text-brand-accent' : 'text-slate-400'} size={32} /> 1. Facility Details
+                    <span className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 font-bold">1</span>
+                    Facility Details
                   </span>
                   {hasAddress ? <CheckCircle2 className="text-brand-accent" size={32} /> : <AlertCircle className="text-amber-500 animate-pulse" size={32} />}
                 </h2>
                 <div className="grid md:grid-cols-2 gap-10">
-                  <div className="space-y-3">
-                    <label className="text-[11px] uppercase font-black text-slate-400 tracking-[0.2em] ml-1">Organization Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="TOTAL FACILITY SERVICES LLC"
-                      value={clientInfo.name}
-                      onChange={e => setClientInfo({...clientInfo, name: e.target.value})}
-                      className="w-full bg-slate-50/50 border-2 border-slate-100 rounded-2xl py-5 px-7 text-base font-bold focus:ring-4 focus:ring-brand-accent/10 focus:border-brand-accent outline-none transition-all"
-                    />
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Organization</label>
+                    <input type="text" placeholder="Organization Name" value={clientInfo.name} onChange={e => setClientInfo({...clientInfo, name: e.target.value})} className="w-full bg-slate-50/50 border-2 border-slate-100 rounded-2xl py-5 px-7 font-bold outline-none focus:border-brand-accent transition-all" />
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-[11px] uppercase font-black text-slate-400 tracking-[0.2em] ml-1">Physical Address</label>
-                    <input 
-                      type="text" 
-                      placeholder="Street, City, State"
-                      value={clientInfo.address}
-                      onChange={e => setClientInfo({...clientInfo, address: e.target.value})}
-                      className={`w-full bg-slate-50/50 border-2 rounded-2xl py-5 px-7 text-base font-bold focus:ring-4 focus:ring-brand-accent/10 focus:border-brand-accent outline-none transition-all ${hasAddress ? 'border-brand-accent/20' : 'border-slate-100'}`}
-                    />
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Physical Address</label>
+                    <input type="text" placeholder="Physical Address" value={clientInfo.address} onChange={e => setClientInfo({...clientInfo, address: e.target.value})} className={`w-full bg-slate-50/50 border-2 rounded-2xl py-5 px-7 font-bold outline-none transition-all ${hasAddress ? 'border-brand-accent/20' : 'border-slate-100 focus:border-brand-accent'}`} />
                   </div>
                 </div>
               </div>
 
-              <div id="room-breakdown" className={`transition-all duration-700 border-2 rounded-[3rem] p-12 shadow-2xl ${hasRooms ? 'border-brand-accent/20 bg-white' : 'border-slate-100 bg-slate-50/50'}`}>
+              <div className="border-2 rounded-[3rem] p-12 shadow-2xl border-slate-100 bg-white">
                 <RoomList rooms={rooms} onChange={setRooms} />
               </div>
 
@@ -404,85 +415,27 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Price Sidebar */}
+            {/* SIDEBAR - QUOTE OUTPUT */}
             <aside className="lg:col-span-4 lg:sticky lg:top-32 space-y-8">
               {!isQuoteUnlocked ? (
-                <div className={`transition-all duration-700 bg-[#0f172a] text-white rounded-[3.5rem] p-12 shadow-2xl relative overflow-hidden group border ${isConfigComplete ? 'border-brand-accent/50' : 'border-white/5 opacity-90'}`}>
-                   <div className="absolute top-0 right-0 w-60 h-60 bg-brand-accent/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
+                <div className="bg-[#0f172a] text-white rounded-[3.5rem] p-12 shadow-2xl relative overflow-hidden group">
                    <div className="relative z-10 flex flex-col items-center text-center space-y-10">
-                      <div className={`w-24 h-24 rounded-[2.5rem] flex items-center justify-center mb-2 shadow-inner border transition-all duration-700 ${isConfigComplete ? 'bg-brand-accent/20 border-brand-accent/40 text-brand-accentLight' : 'bg-white/5 border-white/10 text-slate-600'}`}>
+                      <div className={`w-24 h-24 rounded-[2.5rem] flex items-center justify-center transition-all duration-700 ${isConfigComplete ? 'bg-brand-accent/20 border-brand-accent/40 text-brand-accentLight' : 'bg-white/5 border-white/10 text-slate-600'}`}>
                         {isConfigComplete ? <Sparkles size={48} className="animate-pulse" /> : <Lock size={48} />}
                       </div>
-                      
-                      <div className="space-y-4">
-                        <h3 className="text-4xl font-black tracking-tighter">
-                          {isConfigComplete ? 'Unlock Analysis' : 'Configuration'}
-                        </h3>
-                        <p className="text-base text-slate-400 font-medium px-4 leading-relaxed">
-                          {isConfigComplete 
-                            ? 'Your precision labor model is ready for review.' 
-                            : 'Provide facility details and room counts to unlock your budget.'}
-                        </p>
-                      </div>
-
-                      <div className="w-full space-y-4 bg-white/5 border border-white/10 p-6 rounded-3xl text-left">
-                        <button 
-                          onClick={() => document.getElementById('facility-context')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                          className="w-full flex items-center justify-between group/item"
-                        >
-                           <div className="flex items-center gap-4">
-                             <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${hasAddress ? 'bg-brand-accent text-white' : 'border border-slate-600 text-slate-600'}`}>
-                               {hasAddress ? <CheckCircle2 size={14} /> : <span className="text-[11px] font-black">1</span>}
-                             </div>
-                             <span className={`text-xs font-black uppercase tracking-widest transition-colors ${hasAddress ? 'text-white' : 'text-slate-500 group-hover/item:text-slate-300'}`}>Facility Address</span>
-                           </div>
-                           {!hasAddress && <span className="text-[10px] text-brand-accent font-black underline uppercase tracking-tighter">Add</span>}
-                        </button>
-                        
-                        <button 
-                          onClick={() => document.getElementById('room-breakdown')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                          className="w-full flex items-center justify-between group/item"
-                        >
-                           <div className="flex items-center gap-4">
-                             <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${hasRooms ? 'bg-brand-accent text-white' : 'border border-slate-600 text-slate-600'}`}>
-                               {hasRooms ? <CheckCircle2 size={14} /> : <span className="text-[11px] font-black">2</span>}
-                             </div>
-                             <span className={`text-xs font-black uppercase tracking-widest transition-colors ${hasRooms ? 'text-white' : 'text-slate-500 group-hover/item:text-slate-300'}`}>Room Breakdown</span>
-                           </div>
-                           {!hasRooms && <span className="text-[10px] text-brand-accent font-black underline uppercase tracking-tighter">Add</span>}
-                        </button>
-                      </div>
+                      <h3 className="text-4xl font-black tracking-tighter">{isConfigComplete ? 'Unlock Analysis' : 'Configuration'}</h3>
                       
                       {verificationStep === 'email' ? (
                         <form onSubmit={handleSendVerification} className="w-full space-y-5">
-                          <input 
-                            type="email" 
-                            required
-                            disabled={!isConfigComplete}
-                            placeholder="Work Email"
-                            value={verificationEmail}
-                            onChange={(e) => setVerificationEmail(e.target.value)}
-                            className={`w-full border rounded-2xl py-5 px-8 text-base text-center font-bold outline-none transition-all ${isConfigComplete ? 'bg-white/5 border-white/10 text-white focus:ring-4 focus:ring-brand-accent/30' : 'bg-white/5 border-white/5 text-slate-800 cursor-not-allowed'}`}
-                          />
-                          <button 
-                            type="submit"
-                            disabled={isSendingCode || !isConfigComplete}
-                            className={`w-full font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-sm ${isConfigComplete ? 'bg-brand-accent hover:bg-brand-accentLight text-white shadow-2xl shadow-brand-accent/40 active:scale-95' : 'bg-slate-800 text-slate-600 cursor-not-allowed opacity-50'}`}
-                          >
-                            {!isConfigComplete ? 'Awaiting Details' : isSendingCode ? 'Processing...' : 'Request Access Code'}
+                          <input type="email" required disabled={!isConfigComplete} placeholder="Work Email" value={verificationEmail} onChange={(e) => setVerificationEmail(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-center font-bold text-white outline-none focus:border-brand-accent" />
+                          <button type="submit" disabled={isSendingCode || !isConfigComplete} className={`w-full font-black py-5 rounded-2xl transition-all uppercase tracking-widest text-sm ${isConfigComplete ? 'bg-brand-accent text-white shadow-2xl shadow-brand-accent/40' : 'bg-slate-800 text-slate-600 cursor-not-allowed opacity-50'}`}>
+                            {isSendingCode ? 'Sending...' : 'Request Access Code'}
                           </button>
                         </form>
                       ) : (
                         <form onSubmit={handleVerifyCode} className="w-full space-y-5">
-                          <input 
-                            type="text" 
-                            required
-                            placeholder="4-Digit Code"
-                            value={inputCode}
-                            onChange={(e) => setInputCode(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-lg text-center tracking-[1em] font-mono focus:ring-4 focus:ring-brand-accent/30 outline-none"
-                          />
-                          <button type="submit" className="w-full bg-brand-secondary hover:bg-amber-600 text-white font-black py-5 rounded-2xl transition-all shadow-2xl shadow-brand-secondary/40 uppercase tracking-widest text-sm">Verify & Unlock</button>
+                          <input type="text" required placeholder="4-Digit Code" value={inputCode} onChange={(e) => setInputCode(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-lg text-center tracking-[1em] font-mono outline-none focus:border-brand-accent" />
+                          <button type="submit" className="w-full bg-brand-secondary text-white font-black py-5 rounded-2xl uppercase tracking-widest text-sm">Verify & Unlock</button>
                         </form>
                       )}
                    </div>
@@ -497,41 +450,19 @@ const App: React.FC = () => {
                         <span className="text-base text-slate-500 font-medium ml-2 uppercase tracking-[0.2em]">/mo</span>
                       </div>
                     </div>
-                    
                     <div className="h-px bg-white/10"></div>
-                    
                     <div className="space-y-8">
                       <div className="flex justify-between items-center">
-                        <div className="flex flex-col">
-                          <span className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Janitorial Base</span>
-                          <span className="text-xs text-slate-500 font-bold mt-1">Daily cleaning & sanitation</span>
-                        </div>
+                        <span className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Janitorial Base</span>
                         <span className="font-black text-xl text-brand-accentLight">{formatCurrency(quote.cleaningTotal + quote.specialtyTotal)}</span>
                       </div>
-                      
                       {quote.porterTotal > 0 && (
                         <div className="flex justify-between items-center">
-                          <div className="flex flex-col">
-                            <span className="text-slate-400 font-black uppercase tracking-widest text-[10px]">On-Site Porter</span>
-                            <span className="text-xs text-slate-500 font-bold mt-1">Daily facility presence</span>
-                          </div>
+                          <span className="text-slate-400 font-black uppercase tracking-widest text-[10px]">On-Site Porter</span>
                           <span className="font-black text-xl text-brand-accentLight">{formatCurrency(quote.porterTotal)}</span>
                         </div>
                       )}
-
-                      <div className="mt-8 p-6 bg-white/5 border border-white/10 rounded-[2rem] space-y-4">
-                         <div className="flex items-center gap-3 text-brand-accent">
-                           <ShieldCheck size={20} />
-                           <span className="text-[11px] font-black uppercase tracking-widest">Included Preventative Care</span>
-                         </div>
-                         <ul className="text-xs text-slate-400 font-bold space-y-3 leading-relaxed">
-                            <li className="flex items-start gap-2">• Summer Stripping & Waxing</li>
-                            <li className="flex items-start gap-2">• Winter Floor Neutralization</li>
-                            <li className="flex items-start gap-2">• Scheduled Carpet Shampooing</li>
-                         </ul>
-                      </div>
                     </div>
-
                     <p className="text-[10px] text-slate-600 text-center font-black uppercase tracking-[0.3em] pt-6">Managed Precision • Fixed Budget</p>
                   </div>
                 </div>
@@ -546,74 +477,45 @@ const App: React.FC = () => {
             clientInfo={clientInfo} 
             rooms={rooms}
             initialEmail={isQuoteUnlocked ? verificationEmail : ''}
-            onSubmit={(data) => trackEvent('lead_form_submitted', { company: data.company })} 
-            onSchedule={() => {
-              setIsSchedulerOpen(true);
-              trackEvent('schedule_walkthrough_click');
-            }}
+            onSubmit={() => {}} 
+            onSchedule={() => setIsSchedulerOpen(true)}
+            onReset={resetApp}
           />
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-[#0f172a] text-white pt-40 pb-20 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-accent/5 rounded-full blur-[120px]"></div>
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-24 relative z-10">
-          <div className="col-span-2 space-y-10">
-            <div className="flex items-center gap-4 group cursor-pointer">
-              <LogoIcon className="w-14 h-14" light={true} />
+      <footer className="bg-[#0f172a] text-white pt-40 pb-20 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-24">
+          <div className="space-y-10">
+            <div className="flex items-center gap-4">
+              <LogoIcon className="w-14 h-14" light={false} />
               <span className="font-black text-3xl tracking-tighter uppercase">TOTAL FACILITY SERVICES LLC</span>
             </div>
-            <div className="text-slate-400 max-w-sm leading-relaxed text-xl font-medium space-y-6">
-              <p>Everything Your Building Needs. <br /> All in One Place.</p>
-              <div className="text-sm space-y-2 border-l-2 border-brand-accent pl-6">
-                <p className="font-black text-white">NYC Headquarters</p>
-                <p>211 East 43rd Street, FL 7</p>
-                <p>New York, NY 10017</p>
-              </div>
-            </div>
-            <div className="flex gap-5">
-              <a href="mailto:info@thetotalfacility.com" className="w-14 h-14 rounded-[1.2rem] bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-accent hover:text-white transition-all"><Mail size={24} /></a>
-              <a href="tel:8444543101" className="w-14 h-14 rounded-[1.2rem] bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-accent hover:text-white transition-all"><Phone size={24} /></a>
-              <div className="w-14 h-14 rounded-[1.2rem] bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-accent hover:text-white transition-all"><Globe size={24} /></div>
+            <p className="text-slate-400 text-xl font-medium">Everything Your Building Needs. <br /> All in One Place.</p>
+            <div className="flex gap-4">
+              <a href="#" className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-accent transition-colors"><Globe size={20} /></a>
+              <a href="#" className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-accent transition-colors"><Mail size={20} /></a>
+              <a href="#" className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-accent transition-colors"><Phone size={20} /></a>
             </div>
           </div>
-          
-          <div className="space-y-10">
-             <h4 className="font-black text-xs uppercase tracking-[0.4em] text-slate-500">Service Regions</h4>
-             <ul className="space-y-6 text-slate-400 font-bold">
-               <li className="flex items-center gap-4 hover:text-brand-accent transition-colors"><MapPin size={20} className="text-brand-accent" /> New York Metro</li>
-               <li className="flex items-center gap-4 hover:text-brand-accent transition-colors"><MapPin size={20} className="text-brand-accent" /> Florida Region</li>
-               <li className="flex items-center gap-4 hover:text-brand-accent transition-colors"><MapPin size={20} className="text-brand-accent" /> New Jersey</li>
-               <li className="flex items-center gap-4 hover:text-brand-accent transition-colors"><MapPin size={20} className="text-brand-accent" /> Connecticut</li>
-             </ul>
+          <div className="flex flex-col md:flex-row gap-12 text-slate-400 font-bold">
+            <div className="space-y-6">
+              <h4 className="text-white text-xs uppercase tracking-widest">Regions</h4>
+              <ul className="space-y-3">
+                <li className="flex items-center gap-3"><MapPin size={14} className="text-brand-accent" /> NY Metro</li>
+                <li className="flex items-center gap-3"><MapPin size={14} className="text-brand-accent" /> Florida</li>
+                <li className="flex items-center gap-3"><MapPin size={14} className="text-brand-accent" /> New Jersey</li>
+                <li className="flex items-center gap-3"><MapPin size={14} className="text-brand-accent" /> Connecticut</li>
+              </ul>
+            </div>
+            <div className="space-y-6">
+              <h4 className="text-white text-xs uppercase tracking-widest">Contact</h4>
+              <p className="hover:text-white transition-colors">info@thetotalfacility.com</p>
+              <p className="text-brand-accent text-2xl font-black">(844) 454-3101</p>
+              <p className="text-[10px] text-slate-600 uppercase tracking-widest">© 2024 Total Facility Services LLC. All rights reserved.</p>
+            </div>
           </div>
-          
-          <div className="space-y-10">
-             <h4 className="font-black text-xs uppercase tracking-[0.4em] text-slate-500">Direct Contact</h4>
-             <ul className="space-y-6 text-slate-400 font-bold">
-               <li>
-                 <a href="mailto:info@thetotalfacility.com" className="flex items-center gap-4 hover:text-brand-accent transition-colors">
-                   <Mail size={20} className="text-brand-accent" /> info@thetotalfacility.com
-                 </a>
-               </li>
-               <li>
-                 <a href="tel:8444543101" className="flex items-center gap-4 hover:text-brand-accent transition-colors">
-                   <Phone size={20} className="text-brand-accent" /> (844) 454-3101
-                 </a>
-               </li>
-               <li className="flex items-center gap-4"><Zap size={20} className="text-brand-accent" /> 24/7 Priority Support</li>
-             </ul>
-          </div>
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-6 pt-24 mt-24 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
-           <p className="text-slate-600 text-sm font-bold tracking-tight">&copy; {new Date().getFullYear()} TOTAL FACILITY SERVICES LLC. All Rights Reserved.</p>
-           <div className="flex gap-10 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">
-             <a href="#" className="hover:text-brand-accent transition-colors">Terms</a>
-             <a href="#" className="hover:text-brand-accent transition-colors">Privacy</a>
-             <a href="#" className="hover:text-brand-accent transition-colors">Compliance</a>
-           </div>
         </div>
       </footer>
 

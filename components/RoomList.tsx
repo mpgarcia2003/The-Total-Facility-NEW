@@ -53,87 +53,86 @@ const RoomList: React.FC<RoomListProps> = ({ rooms, onChange }) => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
-        <h3 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
-          <span className="w-8 h-8 rounded-lg bg-brand-accent/20 flex items-center justify-center text-brand-accent">
-            1
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row justify-between md:items-center mb-8 gap-4">
+        <h3 className="text-2xl font-black text-slate-900 flex items-center gap-4">
+          <span className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 font-bold">
+            2
           </span>
           Room Breakdown
         </h3>
         
-        <div className="flex items-center gap-2">
-          <select 
-            value={selectedPreset}
-            onChange={handleAddPreset}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-brand-accent focus:border-brand-accent outline-none font-medium"
-          >
-            <option value="">+ Add Room Type...</option>
-            {PRESET_ROOMS.map((preset) => (
-              <option key={preset.name} value={preset.name}>
-                {preset.name}
-              </option>
-            ))}
-          </select>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <select 
+              value={selectedPreset}
+              onChange={handleAddPreset}
+              className="appearance-none bg-slate-50 border border-slate-200 text-slate-600 text-sm rounded-2xl pl-6 pr-10 py-3 focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none font-medium cursor-pointer"
+            >
+              <option value="">+ Add Room Type...</option>
+              {PRESET_ROOMS.map((preset) => (
+                <option key={preset.name} value={preset.name}>
+                  {preset.name}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
           <button 
             onClick={handleAddCustom}
-            className="text-xs uppercase tracking-wider font-semibold text-brand-accent hover:text-teal-700 transition-colors whitespace-nowrap px-2"
+            className="text-xs uppercase tracking-widest font-black text-teal-600 hover:text-teal-700 transition-colors whitespace-nowrap px-2"
           >
-            + Custom
+            + CUSTOM
           </button>
         </div>
       </div>
 
       <div className="grid gap-4">
-        {/* Header - Hiding Mins and Total columns */}
-        <div className="hidden md:grid grid-cols-12 gap-4 text-xs uppercase tracking-wider text-slate-500 font-bold px-4">
-          <div className="col-span-8">Room Type</div>
-          <div className="col-span-4 text-center">Quantity</div>
+        <div className="grid grid-cols-12 gap-4 text-[10px] uppercase tracking-[0.2em] text-slate-400 font-black px-8">
+          <div className="col-span-8 md:col-span-9">Room Type</div>
+          <div className="col-span-4 md:col-span-3 text-center">Quantity</div>
         </div>
 
         {rooms.map((room, idx) => (
           <div 
             key={room.id}
-            className="group relative bg-white border border-slate-200 rounded-xl p-4 md:grid md:grid-cols-12 md:gap-4 md:items-center hover:border-brand-accent/50 hover:shadow-md transition-all duration-300"
+            className="group relative bg-white border border-slate-100 rounded-[2rem] p-5 px-8 flex items-center justify-between hover:border-teal-500/30 hover:shadow-xl hover:shadow-teal-500/5 transition-all duration-500"
             style={{ animationDelay: `${idx * ANIMATION_DELAY}ms` }}
           >
-            {/* Room Name - Expanded to take more space */}
-            <div className="col-span-8 mb-3 md:mb-0">
+            <div className="flex-1">
               <input
                 type="text"
                 value={room.name}
                 onChange={(e) => handleUpdate(room.id, 'name', e.target.value)}
-                className="w-full bg-transparent border-none text-slate-900 font-medium focus:ring-0 focus:text-brand-accent placeholder-slate-400"
+                className="w-full bg-transparent border-none text-slate-900 font-black text-lg focus:ring-0 focus:text-teal-600 placeholder-slate-300 transition-colors"
                 placeholder="Area Name"
               />
-              {/* Hidden Input for calculation logic preservation */}
-              <input type="hidden" value={room.minutesPerRoom} />
             </div>
 
-            {/* Quantity Control */}
-            <div className="col-span-3 flex items-center justify-center gap-3 mb-3 md:mb-0">
-              <button 
-                onClick={() => handleDecrement(room.id)}
-                className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-all"
-              >
-                <Minus size={14} />
-              </button>
-              <span className="w-12 text-center text-lg font-bold text-slate-900">{room.quantity}</span>
-              <button 
-                onClick={() => handleIncrement(room.id)}
-                className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-brand-accent hover:bg-brand-accent hover:text-white transition-all"
-              >
-                <Plus size={14} />
-              </button>
-            </div>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-6">
+                <button 
+                  onClick={() => handleDecrement(room.id)}
+                  className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-all"
+                >
+                  <Minus size={18} />
+                </button>
+                <span className="text-xl font-black text-slate-900 min-w-[20px] text-center">{room.quantity}</span>
+                <button 
+                  onClick={() => handleIncrement(room.id)}
+                  className="w-10 h-10 rounded-full bg-teal-50/50 flex items-center justify-center text-teal-600 hover:bg-teal-100 hover:text-teal-700 transition-all"
+                >
+                  <Plus size={18} />
+                </button>
+              </div>
 
-            {/* Delete Action */}
-            <div className="col-span-1 flex items-center justify-end">
               <button 
                 onClick={() => handleRemove(room.id)}
-                className="text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                className="text-slate-300 hover:text-red-500 transition-colors ml-2"
               >
-                <Trash2 size={16} />
+                <Trash2 size={20} />
               </button>
             </div>
           </div>
