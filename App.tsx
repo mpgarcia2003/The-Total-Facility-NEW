@@ -165,9 +165,9 @@ const App: React.FC = () => {
       {/* GLOBAL HEADER */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'bg-white/90 backdrop-blur-xl shadow-lg py-3' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 bg-brand-accent rounded-xl flex items-center justify-center text-white shadow-xl shadow-brand-accent/30 transform rotate-3 hover:rotate-0 transition-transform cursor-pointer">
-              <Building2 size={26} />
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 flex items-center justify-center transition-transform hover:scale-110 cursor-pointer">
+              <img src="/logo.png" alt="The Total Facility Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="font-black text-xl leading-none text-slate-900 tracking-tight uppercase">The Facility Services LLC</span>
@@ -683,9 +683,9 @@ const App: React.FC = () => {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-accent/5 rounded-full blur-[100px]"></div>
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-20 relative z-10">
           <div className="col-span-2 space-y-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-brand-accent rounded-xl flex items-center justify-center">
-                <Building2 size={24} />
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 flex items-center justify-center">
+                <img src="/logo.png" alt="Brand Logo" className="w-full h-full object-contain brightness-0 invert" />
               </div>
               <span className="font-black text-2xl tracking-tighter uppercase">The Facility Services LLC</span>
             </div>
