@@ -10,6 +10,7 @@ import { DEFAULT_PRICING_SETTINGS, DEFAULT_ROOMS, DEFAULT_PORTERS } from './cons
 import { calculateQuote } from './utils/pricing';
 import { formatCurrency } from './utils/format';
 import emailjs from '@emailjs/browser';
+import { Analytics } from '@vercel/analytics/react';
 
 // Components
 import RoomList from './components/RoomList';
@@ -743,6 +744,7 @@ const App: React.FC = () => {
 
       <SchedulingModal isOpen={isSchedulerOpen} onClose={() => setIsSchedulerOpen(false)} />
       <IndustryExplainerModal industryId={activeIndustryExplainer} onClose={() => setActiveIndustryExplainer(null)} />
+      <Analytics />
     </div>
   );
 };
