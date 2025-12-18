@@ -47,8 +47,7 @@ const App: React.FC = () => {
     address: '',
     email: '',
     phone: '',
-    walkthroughDate: new Date().toISOString().split('T')[0],
-    repName: 'Yasmin Peralta'
+    walkthroughDate: new Date().toISOString().split('T')[0]
   });
 
   const [includeSummer, setIncludeSummer] = useState(false);
@@ -233,15 +232,6 @@ const App: React.FC = () => {
                       className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-10 text-sm text-slate-900 focus:border-brand-accent focus:ring-1 focus:ring-brand-accent focus:outline-none"
                     />
                   </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-500 uppercase font-bold">Sales Rep</label>
-                  <input 
-                    type="text" 
-                    value={clientInfo.repName}
-                    onChange={e => setClientInfo({...clientInfo, repName: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm focus:border-brand-accent focus:ring-1 focus:ring-brand-accent focus:outline-none text-brand-accent font-semibold"
-                  />
                 </div>
               </div>
             </section>

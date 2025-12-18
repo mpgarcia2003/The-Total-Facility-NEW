@@ -34,7 +34,6 @@ export interface ClientInfo {
   email: string;
   phone: string;
   walkthroughDate: string;
-  repName: string;
 }
 
 export interface QuoteCalculations {
