@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { 
   PricingSettings, 
   RoomType, 
@@ -521,6 +522,7 @@ const App: React.FC = () => {
 
       <SchedulingModal isOpen={isSchedulerOpen} onClose={() => setIsSchedulerOpen(false)} />
       <IndustryExplainerModal industryId={activeIndustryExplainer} onClose={() => setActiveIndustryExplainer(null)} />
+      <Analytics />
     </div>
   );
 };
