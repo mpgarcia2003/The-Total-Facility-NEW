@@ -5,21 +5,17 @@ import { PricingSettings, RoomType, PorterService } from './types';
 // ==========================================
 export const DEFAULT_PRICING_SETTINGS: PricingSettings = {
   daysInMonth: 22,
-  hourlyRate: 17.50,       // Updated to your specific cleaning rate
-  porterHourlyRate: 20.00, // Updated to your specific porter rate
-  porterUniformCost: 0,
-  porterMiscCost: 0,
-  porterProfit: 0,
+  hourlyRate: 17.50,
+  porterHourlyRate: 20.00,
   
-  // Simplified Markup Logic
-  materialPct: 0,          // Removed separate material cost
-  miscPct: 0,              // Removed separate misc cost
-  profitPct: 0.25,         // 25% extra for margin and profit
-  summerStripPct: 0.25,    // Match margin logic
-  winterWashPct: 0.20
+  // Updated Markup Logic (30%)
+  profitPct: 0.30, 
+
+  // Estimate: Annual specialty work (floors/carpets) equals ~60% of one month's base cleaning labor
+  // This value is amortized over 12 months.
+  specialtyAnnualLaborFactor: 0.60 
 };
 
-// Comprehensive list from your image
 export const PRESET_ROOMS: Omit<RoomType, 'id' | 'quantity'>[] = [
   { name: 'Classroom', minutesPerRoom: 15 },
   { name: 'Laboratory (Science/Computer)', minutesPerRoom: 17 },
@@ -65,4 +61,4 @@ export const DEFAULT_PORTERS: PorterService[] = [
   { id: 'p1', name: 'Day Porter', quantity: 0, hoursPerDay: 8 },
 ];
 
-export const ANIMATION_DELAY = 100; // ms between items
+export const ANIMATION_DELAY = 100;

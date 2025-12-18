@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Calculator, 
@@ -19,7 +20,15 @@ import {
   Building2,
   ArrowRight,
   Lock,
-  Key
+  Key,
+  // Added missing icons to fix App.tsx import errors
+  ShieldCheck,
+  Zap,
+  Globe,
+  GraduationCap,
+  Stethoscope,
+  ChevronDown,
+  X
 } from 'lucide-react';
 
 export {
@@ -42,5 +51,13 @@ export {
   Building2,
   ArrowRight,
   Lock,
-  Key
+  Key,
+  // Exporting the newly added icons
+  ShieldCheck,
+  Zap,
+  Globe,
+  GraduationCap,
+  Stethoscope,
+  ChevronDown,
+  X
 };

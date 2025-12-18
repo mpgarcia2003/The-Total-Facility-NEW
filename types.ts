@@ -16,16 +16,11 @@ export interface PricingSettings {
   daysInMonth: number;
   hourlyRate: number;
   porterHourlyRate: number;
-  porterUniformCost: number;
-  porterMiscCost: number;
-  porterProfit: number;
   
   // Percentages
-  materialPct: number;
-  miscPct: number;
   profitPct: number;
-  summerStripPct: number;
-  winterWashPct: number;
+  // Specialty Maintenance (Floor/Carpet) as a % of monthly cleaning labor, spread over 12 months
+  specialtyAnnualLaborFactor: number; 
 }
 
 export interface ClientInfo {
@@ -40,19 +35,18 @@ export interface QuoteCalculations {
   totalDailyMinutes: number;
   totalDailyHours: number;
   monthlyCleaningHours: number;
-  laborCost: number;
-  materialCost: number;
-  miscCost: number;
-  profitCost: number;
-  cleaningTotal: number;
-  summerStripCost: number;
-  winterWashCost: number;
   
-  // Porter
-  totalPorterDailyHours: number;
-  monthlyPorterHours: number;
-  porterLaborCost: number;
+  // Base Costs (Pre-Markup)
+  baseCleaningLabor: number;
+  basePorterLabor: number;
+  
+  // Specialty (Amortized Pre-Markup)
+  amortizedSpecialtyLabor: number;
+
+  // Final Markup-ed Totals
+  cleaningTotal: number;
   porterTotal: number;
+  specialtyTotal: number;
   
   // Grand Total
   grandTotal: number;

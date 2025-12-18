@@ -44,7 +44,6 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, clientInfo, initialEmail, on
 
     let screenshotDataUrl = '';
 
-    // 1. Capture the screenshot (Optimized for size)
     try {
         const contentElement = document.getElementById('quote-content');
         if (contentElement) {
@@ -56,7 +55,6 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, clientInfo, initialEmail, on
             });
             const rawDataUrl = canvas.toDataURL('image/jpeg', 0.5);
             
-            // EmailJS 50KB limit check
             if (rawDataUrl.length < 48000) {
                 screenshotDataUrl = rawDataUrl;
             } else {
@@ -67,22 +65,22 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, clientInfo, initialEmail, on
         console.warn("Screenshot capture failed:", err);
     }
 
-    // 2. Prepare Template Params with REDUNDANT variables to prevent routing failure
     const templateParams = {
-      to_email: formData.email,        // Preferred variable
-      email: formData.email,           // Alternative 1
-      recipient_email: formData.email,  // Alternative 2
-      user_email: formData.email,       // Alternative 3
+      to_email: formData.email,
+      email: formData.email,
+      recipient_email: formData.email,
+      user_email: formData.email,
       reply_to: 'info@thetotalfacility.com', 
       name: formData.name,
       company: formData.company,
       phone: formData.phone,
       bestTime: formData.bestTime,
       quote_total: quote.grandTotal.toFixed(2),
-      screenshot: screenshotDataUrl || "Image unavailable or too large. See quote details in text summary."
+      cleaning_total: quote.cleaningTotal.toFixed(2),
+      specialty_total: quote.specialtyTotal.toFixed(2),
+      screenshot: screenshotDataUrl || "All-inclusive monthly rate includes recurring cleaning and amortized floor/carpet care."
     };
 
-    // 3. Send Email
     try {
         await emailjs.send(
             EMAILJS_SERVICE_ID,
@@ -91,13 +89,11 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, clientInfo, initialEmail, on
             EMAILJS_PUBLIC_KEY
         );
         
-        console.log("Analytics: lead_submitted_success");
         setSubmitted(true);
         onSubmit(formData);
 
     } catch (error: any) {
-        const errorMsg = typeof error === 'object' ? JSON.stringify(error) : String(error);
-        console.error("EmailJS Error (Lead):", errorMsg);
+        console.error("EmailJS Error (Lead):", error);
         alert("We received your request, but the email confirmation failed to send. We will contact you shortly.");
         setSubmitted(true); 
     } finally {
@@ -117,7 +113,7 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, clientInfo, initialEmail, on
         </div>
         <h3 className="text-3xl font-bold text-slate-900 mb-2">Quote Request Received!</h3>
         <p className="text-slate-600 mb-6">
-          Thank you, <span className="text-brand-accent font-bold">{formData.name}</span>. We have captured your facility requirements and will review your quote inputs shortly.
+          Thank you, <span className="text-brand-accent font-bold">{formData.name}</span>. We have captured your facility requirements and all-inclusive pricing strategy.
         </p>
       </div>
     );
@@ -128,8 +124,8 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, clientInfo, initialEmail, on
       <div className="absolute top-0 right-0 w-64 h-64 bg-brand-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
       
       <div className="relative z-10">
-        <h3 className="text-2xl font-bold text-slate-900 mb-2">Save This Quote & Schedule</h3>
-        <p className="text-slate-500 mb-8">Finalize your request to lock in this estimated pricing.</p>
+        <h3 className="text-2xl font-bold text-slate-900 mb-2">Save This All-Inclusive Quote</h3>
+        <p className="text-slate-500 mb-8">Finalize your request to lock in this predictable monthly budget.</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
@@ -172,10 +168,10 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, clientInfo, initialEmail, on
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 pt-4">
-            <button type="submit" disabled={isSending} className="flex-1 bg-gradient-to-r from-brand-accentLight to-brand-accent text-white font-bold py-4 rounded-xl shadow-lg hover:-translate-y-1 transition-all disabled:opacity-50">
-              {isSending ? 'Sending...' : 'Send Formal Proposal'}
+            <button type="submit" disabled={isSending} className="flex-1 bg-gradient-to-r from-brand-accentLight to-brand-accent text-white font-bold py-4 rounded-xl shadow-lg hover:-translate-y-1 transition-all disabled:opacity-50 uppercase tracking-widest text-xs">
+              {isSending ? 'Sending...' : 'Lock In Predictable Pricing'}
             </button>
-            <button type="button" onClick={onSchedule} className="flex-1 bg-white text-slate-700 font-bold py-4 rounded-xl border border-slate-200 shadow-sm hover:bg-slate-50 transition-all">
+            <button type="button" onClick={onSchedule} className="flex-1 bg-white text-slate-700 font-bold py-4 rounded-xl border border-slate-200 shadow-sm hover:bg-slate-50 transition-all uppercase tracking-widest text-xs">
               Schedule Walkthrough
             </button>
           </div>
