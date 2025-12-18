@@ -36,13 +36,26 @@ import {
   Phone,
   X,
   Clock,
-  // Added DollarSign to fix "Cannot find name 'DollarSign'" error
   DollarSign
 } from './components/ui/Icons';
 
 const EMAILJS_PUBLIC_KEY = "4ye26ZtWxpi6Pkk5f";
 const EMAILJS_SERVICE_ID = "service_srv6b3k"; 
 const EMAILJS_TEMPLATE_ID_VERIFY = "template_mtm1oef"; 
+
+// Simple analytics helper
+const trackEvent = (eventName: string, params?: object) => {
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', eventName, params);
+  }
+  console.log(`[Analytics] ${eventName}`, params);
+};
+
+declare global {
+  interface Window {
+    gtag: any;
+  }
+}
 
 const App: React.FC = () => {
   const [settings, setSettings] = useState<PricingSettings>(DEFAULT_PRICING_SETTINGS);
@@ -88,6 +101,7 @@ const App: React.FC = () => {
     if (e) e.preventDefault();
     if (ref.current) {
       ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      trackEvent('scroll_to_section', { section: ref.current.id });
     }
   };
 
@@ -104,6 +118,7 @@ const App: React.FC = () => {
         name: clientInfo.name || "Valued Client",
       }, EMAILJS_PUBLIC_KEY);
       setVerificationStep('code');
+      trackEvent('auth_code_requested', { email_domain: verificationEmail.split('@')[1] });
     } catch (error) {
       alert(`Access code for testing: ${code}`);
       setVerificationStep('code');
@@ -117,10 +132,17 @@ const App: React.FC = () => {
     if (inputCode === verificationCode) {
       setIsQuoteUnlocked(true);
       setClientInfo(prev => ({ ...prev, email: verificationEmail }));
+      trackEvent('quote_unlocked', { total: quote.grandTotal });
     } else {
       alert("Invalid code.");
       setInputCode('');
+      trackEvent('auth_failed');
     }
+  };
+
+  const handleOpenExplainer = (id: string) => {
+    setActiveIndustryExplainer(id);
+    trackEvent('view_industry_explainer', { industry: id });
   };
 
   return (
@@ -178,7 +200,7 @@ const App: React.FC = () => {
           <div className="space-y-10">
             <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/10 border border-white/20 text-xs font-black text-brand-accentLight uppercase tracking-widest backdrop-blur-md">
               <span className="flex h-2 w-2 rounded-full bg-brand-accent animate-pulse"></span>
-              NYC Metro & Florida Regions
+              NY, FL, NJ, & CT Metro Regions
             </div>
             
             <h1 className="text-5xl lg:text-8xl font-black text-white leading-[0.95] tracking-tighter">
@@ -200,7 +222,10 @@ const App: React.FC = () => {
                 Build Your Monthly Budget <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button 
-                onClick={() => setIsSchedulerOpen(true)}
+                onClick={() => {
+                  setIsSchedulerOpen(true);
+                  trackEvent('request_assessment_click');
+                }}
                 className="px-10 py-5 bg-white/5 hover:bg-white/10 text-white font-black rounded-2xl border border-white/20 backdrop-blur-md transition-all text-lg"
               >
                 Request Facility Assessment
@@ -210,7 +235,7 @@ const App: React.FC = () => {
             <div className="flex flex-wrap gap-8 pt-6">
               {[
                 { label: 'Insured & Bonded', icon: ShieldCheck },
-                { label: 'NYC & FL Markets', icon: MapPin },
+                { label: 'Multi-State Coverage', icon: MapPin },
                 { label: 'OSHA Compliant', icon: CheckCircle2 }
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-2.5 text-slate-400">
@@ -263,13 +288,13 @@ const App: React.FC = () => {
               <div className="pt-4 space-y-4">
                 {[
                   { id: 'education', title: 'Charter & Private Schools', desc: 'Child-safe, EPA-approved sanitation for campuses.', icon: GraduationCap },
-                  { id: 'cre', title: 'Commercial Real Estate', desc: 'High-visibility maintenance for NYC class-A offices.', icon: Building2 },
+                  { id: 'cre', title: 'Commercial Real Estate', desc: 'High-visibility maintenance for tri-state class-A offices.', icon: Building2 },
                   { id: 'healthcare', title: 'Healthcare & Clinical', desc: 'Sterile environment protocols and terminal cleaning.', icon: Stethoscope },
-                  { id: 'hoa', title: 'HOA & Community', desc: 'Multi-site management for Florida housing groups.', icon: Users }
+                  { id: 'hoa', title: 'HOA & Community', desc: 'Multi-site management for residential housing groups.', icon: Users }
                 ].map((item, i) => (
                   <button 
                     key={i} 
-                    onClick={() => setActiveIndustryExplainer(item.id)}
+                    onClick={() => handleOpenExplainer(item.id)}
                     className="w-full flex gap-4 text-left items-start group p-4 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100"
                   >
                     <div className="mt-1 w-8 h-8 rounded-lg bg-brand-accent/10 flex items-center justify-center text-brand-accent group-hover:bg-brand-accent group-hover:text-white transition-colors">
@@ -286,7 +311,7 @@ const App: React.FC = () => {
             
             <div className="lg:col-span-7 grid grid-cols-2 gap-6">
               <div className="space-y-6 pt-12">
-                <div onClick={() => setActiveIndustryExplainer('education')} className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 hover:shadow-xl transition-all cursor-pointer">
+                <div onClick={() => handleOpenExplainer('education')} className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 hover:shadow-xl transition-all cursor-pointer">
                   <GraduationCap className="text-brand-accent mb-6" size={40} />
                   <h4 className="text-xl font-black text-slate-900 mb-2">Education</h4>
                   <p className="text-sm text-slate-600">Specialized school cleaning with 100% background-checked staff.</p>
@@ -294,7 +319,7 @@ const App: React.FC = () => {
                 <div className="bg-slate-900 p-8 rounded-[2rem] text-white">
                   <Globe className="text-brand-accentLight mb-6" size={40} />
                   <h4 className="text-xl font-black mb-2">Multi-State</h4>
-                  <p className="text-sm text-slate-400">Managing regional portfolios across NYC and Florida metro areas.</p>
+                  <p className="text-sm text-slate-400">Managing portfolios across NY, FL, NJ, & CT regions.</p>
                 </div>
               </div>
               <div className="space-y-6">
@@ -303,7 +328,7 @@ const App: React.FC = () => {
                   <h4 className="text-xl font-black mb-2">Compliance</h4>
                   <p className="text-sm text-white/80">Strict OSHA and EPA compliance reporting for all facilities.</p>
                 </div>
-                <div onClick={() => setActiveIndustryExplainer('healthcare')} className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 hover:shadow-xl transition-shadow cursor-pointer">
+                <div onClick={() => handleOpenExplainer('healthcare')} className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 hover:shadow-xl transition-shadow cursor-pointer">
                   <Zap className="text-brand-secondary mb-6" size={40} />
                   <h4 className="text-xl font-black text-slate-900 mb-2">Responsiveness</h4>
                   <p className="text-sm text-slate-600">Dedicated account managers and 24/7 emergency support.</p>
@@ -414,7 +439,7 @@ const App: React.FC = () => {
       <section id="quote-section" ref={quoteSectionRef} className="py-32 bg-white border-y border-slate-200 relative scroll-mt-24">
         <div id="quote-content" className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-20">
-            <div className="inline-block px-4 py-1.5 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-black uppercase tracking-[0.2em] mb-4">Budgeting Engine v5.4</div>
+            <div className="inline-block px-4 py-1.5 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-black uppercase tracking-[0.2em] mb-4">Budgeting Engine v5.5</div>
             <h2 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">Build Your Monthly Budget</h2>
             <p className="text-slate-500 max-w-2xl mx-auto text-xl font-medium">All pricing is calculated using a bottom-up labor model and delivered as an all-inclusive monthly facility budget.</p>
           </div>
@@ -568,9 +593,13 @@ const App: React.FC = () => {
           <LeadForm 
             quote={quote} 
             clientInfo={clientInfo} 
+            rooms={rooms}
             initialEmail={isQuoteUnlocked ? verificationEmail : ''}
-            onSubmit={() => {}} 
-            onSchedule={() => setIsSchedulerOpen(true)}
+            onSubmit={(data) => trackEvent('lead_form_submitted', { company: data.company })} 
+            onSchedule={() => {
+              setIsSchedulerOpen(true);
+              trackEvent('schedule_walkthrough_click');
+            }}
           />
         </div>
       </section>
@@ -603,9 +632,10 @@ const App: React.FC = () => {
           <div className="space-y-8">
              <h4 className="font-black text-xs uppercase tracking-[0.3em] text-slate-500">Service Regions</h4>
              <ul className="space-y-5 text-slate-400 font-bold">
-               <li className="flex items-center gap-3 hover:text-brand-accent transition-colors"><MapPin size={18} className="text-brand-accent" /> New York City Metro</li>
-               <li className="flex items-center gap-3 hover:text-brand-accent transition-colors"><MapPin size={18} className="text-brand-accent" /> Westchester County</li>
-               <li className="flex items-center gap-3 hover:text-brand-accent transition-colors"><MapPin size={18} className="text-brand-accent" /> South Florida Expansion</li>
+               <li className="flex items-center gap-3 hover:text-brand-accent transition-colors"><MapPin size={18} className="text-brand-accent" /> New York (All Boroughs & Counties)</li>
+               <li className="flex items-center gap-3 hover:text-brand-accent transition-colors"><MapPin size={18} className="text-brand-accent" /> Florida</li>
+               <li className="flex items-center gap-3 hover:text-brand-accent transition-colors"><MapPin size={18} className="text-brand-accent" /> New Jersey</li>
+               <li className="flex items-center gap-3 hover:text-brand-accent transition-colors"><MapPin size={18} className="text-brand-accent" /> Connecticut</li>
              </ul>
           </div>
           
