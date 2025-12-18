@@ -36,7 +36,9 @@ import {
   Phone,
   X,
   Clock,
-  DollarSign
+  DollarSign,
+  Minus,
+  AlertCircle
 } from './components/ui/Icons';
 
 const EMAILJS_PUBLIC_KEY = "4ye26ZtWxpi6Pkk5f";
@@ -59,7 +61,7 @@ declare global {
 
 const App: React.FC = () => {
   const [settings, setSettings] = useState<PricingSettings>(DEFAULT_PRICING_SETTINGS);
-  const [rooms, setRooms] = useState<RoomType[]>(DEFAULT_ROOMS);
+  const [rooms, setRooms] = useState<RoomType[]>([]); 
   const [porters, setPorters] = useState<PorterService[]>(DEFAULT_PORTERS);
   const [isScrolled, setIsScrolled] = useState(false);
   
@@ -86,6 +88,11 @@ const App: React.FC = () => {
   const processRef = useRef<HTMLElement>(null);
   const quoteSectionRef = useRef<HTMLDivElement>(null);
 
+  // Validation Logic
+  const hasRooms = useMemo(() => rooms.some(r => r.quantity > 0), [rooms]);
+  const hasAddress = useMemo(() => clientInfo.address.trim().length > 5, [clientInfo.address]);
+  const isConfigComplete = hasRooms && hasAddress;
+
   const quote = useMemo(() => {
     return calculateQuote(rooms, porters, settings);
   }, [rooms, porters, settings]);
@@ -99,15 +106,22 @@ const App: React.FC = () => {
 
   const scrollTo = (ref: React.RefObject<HTMLElement | null>, e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    if (ref.current) {
-      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      trackEvent('scroll_to_section', { section: ref.current.id });
+    const element = ref.current;
+    if (element) {
+      const offset = 100;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+      trackEvent('scroll_to_section', { section: element.id });
     }
   };
 
   const handleSendVerification = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!verificationEmail) return;
+    if (!verificationEmail || !isConfigComplete) return;
     setIsSendingCode(true);
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     setVerificationCode(code);
@@ -165,18 +179,8 @@ const App: React.FC = () => {
             <a href="tel:8444543101" className="flex items-center gap-2 text-sm font-black text-brand-accent hover:text-brand-accentLight transition-colors">
               <Phone size={16} /> (844) 454-3101
             </a>
-            <button 
-              onClick={(e) => scrollTo(industriesRef, e)}
-              className="text-sm font-bold text-slate-600 hover:text-brand-accent transition-colors"
-            >
-              Industries
-            </button>
-            <button 
-              onClick={(e) => scrollTo(processRef, e)}
-              className="text-sm font-bold text-slate-600 hover:text-brand-accent transition-colors"
-            >
-              Process
-            </button>
+            <button onClick={(e) => scrollTo(industriesRef, e)} className="text-sm font-bold text-slate-600 hover:text-brand-accent transition-colors">Industries</button>
+            <button onClick={(e) => scrollTo(processRef, e)} className="text-sm font-bold text-slate-600 hover:text-brand-accent transition-colors">Process</button>
             <button 
               onClick={(e) => scrollTo(quoteSectionRef, e)}
               className="bg-brand-accent hover:bg-brand-accentLight text-white px-7 py-3 rounded-2xl text-sm font-black shadow-lg shadow-brand-accent/20 hover:-translate-y-0.5 active:translate-y-0 transition-all uppercase tracking-wider"
@@ -272,6 +276,36 @@ const App: React.FC = () => {
           <ChevronDown size={32} />
         </div>
       </header>
+
+      {/* STICKY PROGRESS RIBBON */}
+      {!isQuoteUnlocked && (
+        <div className="fixed bottom-0 left-0 right-0 z-[60] p-4 pointer-events-none flex justify-center">
+          <div className="pointer-events-auto bg-slate-900/90 backdrop-blur-xl border border-white/10 px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-10 duration-700">
+             <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isConfigComplete ? 'bg-brand-accent' : 'bg-brand-accent/20'}`}>
+                   {isConfigComplete ? <Sparkles size={16} className="text-white" /> : <Lock size={16} className="text-brand-accent" />}
+                </div>
+                <div className="flex flex-col">
+                   <span className="text-white text-xs font-black uppercase tracking-widest">
+                     {isConfigComplete ? 'Configuration Ready' : 'Budget Progress'}
+                   </span>
+                   <span className="text-slate-400 text-[10px] font-bold">
+                     {hasAddress ? 'Address Found' : 'Missing Address'} • {hasRooms ? 'Rooms Counted' : 'Missing Rooms'}
+                   </span>
+                </div>
+             </div>
+             
+             <div className="h-8 w-px bg-white/10 hidden sm:block"></div>
+             
+             <button 
+                onClick={(e) => scrollTo(quoteSectionRef, e)}
+                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isConfigComplete ? 'bg-brand-accent text-white hover:bg-brand-accentLight animate-pulse' : 'bg-white/10 text-slate-300'}`}
+             >
+                {isConfigComplete ? 'Unlock Now' : 'Complete Steps'}
+             </button>
+          </div>
+        </div>
+      )}
 
       {/* CORE INDUSTRIES */}
       <section id="industries" ref={industriesRef} className="py-32 bg-white relative scroll-mt-24">
@@ -447,9 +481,12 @@ const App: React.FC = () => {
           <div className="grid lg:grid-cols-12 gap-12 items-start">
             <div className="lg:col-span-8 space-y-10">
               {/* Step 1: Client Context */}
-              <div className="bg-slate-50/50 border border-slate-200 rounded-[2.5rem] p-10 shadow-sm">
-                <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
-                  <MapPin className="text-brand-accent" size={24} /> 1. Facility Context
+              <div id="facility-context" className={`transition-all duration-500 border rounded-[2.5rem] p-10 shadow-sm ${hasAddress ? 'border-brand-accent/30 bg-white/50' : 'border-slate-200 bg-white animate-pulse-slow ring-4 ring-brand-accent/5'}`}>
+                <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center justify-between">
+                  <span className="flex items-center gap-3">
+                    <MapPin className={hasAddress ? 'text-brand-accent' : 'text-slate-400'} size={24} /> 1. Facility Context
+                  </span>
+                  {hasAddress ? <CheckCircle2 className="text-brand-accent" size={24} /> : <AlertCircle className="text-amber-500 animate-pulse" size={24} />}
                 </h2>
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="space-y-2">
@@ -472,14 +509,14 @@ const App: React.FC = () => {
                         placeholder="Street, City, State"
                         value={clientInfo.address}
                         onChange={e => setClientInfo({...clientInfo, address: e.target.value})}
-                        className="w-full bg-white border-2 border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold focus:ring-4 focus:ring-brand-accent/10 focus:border-brand-accent outline-none transition-all"
+                        className={`w-full bg-white border-2 rounded-2xl py-4 px-6 text-sm font-bold focus:ring-4 focus:ring-brand-accent/10 focus:border-brand-accent outline-none transition-all ${hasAddress ? 'border-brand-accent/20' : 'border-amber-200 shadow-inner'}`}
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white border-2 border-slate-100 rounded-[2.5rem] p-10 shadow-xl">
+              <div id="room-breakdown" className={`transition-all duration-500 border-2 rounded-[2.5rem] p-10 shadow-xl ${hasRooms ? 'border-brand-accent/20 bg-white' : 'border-slate-100 bg-slate-50/50'}`}>
                 <RoomList rooms={rooms} onChange={setRooms} />
               </div>
 
@@ -491,15 +528,51 @@ const App: React.FC = () => {
             {/* Price Sidebar */}
             <aside className="lg:col-span-4 lg:sticky lg:top-28 space-y-6">
               {!isQuoteUnlocked ? (
-                <div className="bg-[#0f172a] text-white rounded-[3rem] p-10 shadow-2xl relative overflow-hidden group border border-white/5">
+                <div className={`transition-all duration-500 bg-[#0f172a] text-white rounded-[3rem] p-10 shadow-2xl relative overflow-hidden group border ${isConfigComplete ? 'border-brand-accent/50' : 'border-white/5 opacity-80 hover:opacity-100'}`}>
                    <div className="absolute top-0 right-0 w-48 h-48 bg-brand-accent/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 group-hover:bg-brand-accent/30 transition-all"></div>
                    <div className="relative z-10 flex flex-col items-center text-center space-y-8">
-                      <div className="w-20 h-20 bg-white/5 rounded-[2rem] flex items-center justify-center text-brand-accent mb-2 shadow-inner border border-white/10">
-                        <Lock size={36} />
+                      <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-2 shadow-inner border transition-all duration-700 ${isConfigComplete ? 'bg-brand-accent/20 border-brand-accent/40 text-brand-accentLight' : 'bg-white/5 border-white/10 text-slate-500'}`}>
+                        {isConfigComplete ? <Sparkles size={36} className="animate-pulse" /> : <Lock size={36} />}
                       </div>
+                      
                       <div className="space-y-3">
-                        <h3 className="text-3xl font-black tracking-tight">Unlock Budget Analysis</h3>
-                        <p className="text-sm text-slate-400 font-medium px-4 leading-relaxed">Please verify your work email to view the data-driven monthly cost analysis.</p>
+                        <h3 className="text-3xl font-black tracking-tight">
+                          {isConfigComplete ? 'Ready to Unlock' : 'Locked Analysis'}
+                        </h3>
+                        <p className="text-sm text-slate-400 font-medium px-4 leading-relaxed">
+                          {isConfigComplete 
+                            ? 'Your custom labor model is ready. Verify your email to see the results.' 
+                            : 'Complete the steps below to generate your facility budget.'}
+                        </p>
+                      </div>
+
+                      {/* PROGRESS CHECKLIST - Interactive */}
+                      <div className="w-full space-y-3 bg-white/5 border border-white/10 p-5 rounded-2xl text-left">
+                        <button 
+                          onClick={() => document.getElementById('facility-context')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                          className="w-full flex items-center justify-between group/item"
+                        >
+                           <div className="flex items-center gap-3">
+                             <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${hasAddress ? 'bg-brand-accent text-white' : 'border border-slate-600 text-slate-600'}`}>
+                               {hasAddress ? <CheckCircle2 size={12} /> : <span className="text-[10px] font-black">1</span>}
+                             </div>
+                             <span className={`text-xs font-bold uppercase tracking-wider transition-colors ${hasAddress ? 'text-white' : 'text-slate-500 group-hover/item:text-slate-300'}`}>Facility Address</span>
+                           </div>
+                           {!hasAddress && <span className="text-[10px] text-brand-accent font-black underline uppercase">Add</span>}
+                        </button>
+                        
+                        <button 
+                          onClick={() => document.getElementById('room-breakdown')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                          className="w-full flex items-center justify-between group/item"
+                        >
+                           <div className="flex items-center gap-3">
+                             <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${hasRooms ? 'bg-brand-accent text-white' : 'border border-slate-600 text-slate-600'}`}>
+                               {hasRooms ? <CheckCircle2 size={12} /> : <span className="text-[10px] font-black">2</span>}
+                             </div>
+                             <span className={`text-xs font-bold uppercase tracking-wider transition-colors ${hasRooms ? 'text-white' : 'text-slate-500 group-hover/item:text-slate-300'}`}>Room Counts</span>
+                           </div>
+                           {!hasRooms && <span className="text-[10px] text-brand-accent font-black underline uppercase">Add</span>}
+                        </button>
                       </div>
                       
                       {verificationStep === 'email' ? (
@@ -507,17 +580,18 @@ const App: React.FC = () => {
                           <input 
                             type="email" 
                             required
+                            disabled={!isConfigComplete}
                             placeholder="Work Email"
                             value={verificationEmail}
                             onChange={(e) => setVerificationEmail(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm text-center font-bold focus:ring-2 focus:ring-brand-accent outline-none transition-all"
+                            className={`w-full border rounded-2xl py-4 px-6 text-sm text-center font-bold outline-none transition-all ${isConfigComplete ? 'bg-white/5 border-white/10 text-white focus:ring-2 focus:ring-brand-accent' : 'bg-white/5 border-white/5 text-slate-700 cursor-not-allowed'}`}
                           />
                           <button 
                             type="submit"
-                            disabled={isSendingCode}
-                            className="w-full bg-brand-accent hover:bg-brand-accentLight text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-xl shadow-brand-accent/20 uppercase tracking-widest text-xs"
+                            disabled={isSendingCode || !isConfigComplete}
+                            className={`w-full font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs ${isConfigComplete ? 'bg-brand-accent hover:bg-brand-accentLight text-white shadow-xl shadow-brand-accent/20 active:scale-95' : 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'}`}
                           >
-                            {isSendingCode ? 'Processing...' : 'Request Access Code'}
+                            {!isConfigComplete ? 'Awaiting Details' : isSendingCode ? 'Processing...' : 'Request Access Code'}
                           </button>
                         </form>
                       ) : (

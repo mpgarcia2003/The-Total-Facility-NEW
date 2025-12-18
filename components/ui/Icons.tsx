@@ -21,14 +21,14 @@ import {
   ArrowRight,
   Lock,
   Key,
-  // Added missing icons to fix App.tsx import errors
   ShieldCheck,
   Zap,
   Globe,
   GraduationCap,
   Stethoscope,
   ChevronDown,
-  X
+  X,
+  AlertCircle
 } from 'lucide-react';
 
 export {
@@ -52,12 +52,12 @@ export {
   ArrowRight,
   Lock,
   Key,
-  // Exporting the newly added icons
   ShieldCheck,
   Zap,
   Globe,
   GraduationCap,
   Stethoscope,
   ChevronDown,
-  X
+  X,
+  AlertCircle
 };
