@@ -28,7 +28,15 @@ import {
   Stethoscope,
   ChevronDown,
   X,
-  AlertCircle
+  AlertCircle,
+  // Added missing icons requested by App.tsx
+  Store,
+  Warehouse,
+  Hotel,
+  GanttChartSquare,
+  ChevronLeft,
+  Info,
+  Layers
 } from 'lucide-react';
 
 export {
@@ -59,5 +67,13 @@ export {
   Stethoscope,
   ChevronDown,
   X,
-  AlertCircle
+  AlertCircle,
+  // Added missing icons requested by App.tsx
+  Store,
+  Warehouse,
+  Hotel,
+  GanttChartSquare,
+  ChevronLeft,
+  Info,
+  Layers
 };

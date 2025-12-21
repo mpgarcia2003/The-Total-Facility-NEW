@@ -1,64 +1,104 @@
-import { PricingSettings, RoomType, PorterService } from './types';
 
-// ==========================================
-// CONFIGURATION: Adjust Default Rates Here
-// ==========================================
-export const DEFAULT_PRICING_SETTINGS: PricingSettings = {
-  daysInMonth: 22,
-  hourlyRate: 17.50,
-  porterHourlyRate: 20.00,
-  
-  // Updated Markup Logic (30%)
-  profitPct: 0.30, 
+import { IndustryType } from './types';
 
-  // Estimate: Annual specialty work (floors/carpets) equals ~60% of one month's base cleaning labor
-  // This value is amortized over 12 months.
-  specialtyAnnualLaborFactor: 0.60 
+export const INDUSTRY_CONFIG = {
+  education: {
+    label: 'Education',
+    description: 'K-12, Charter & Universities',
+    baseRate: 18.50, // Hourly
+  },
+  office: {
+    label: 'Commercial Office',
+    description: 'Class A/B & Mixed-Use',
+    ratePerSqFt: 0.15, // $0.13 - $0.18 range
+  },
+  medical: {
+    label: 'Medical/Clinical',
+    description: 'Clinics & Specialized Med',
+    ratePerSqFt: 0.26, // $0.22 - $0.30 range
+  },
+  retail: {
+    label: 'Retail/Strip Mall',
+    description: 'Retail & Shopping Centers',
+    smallVisit: 90,
+    mediumVisit: 135,
+    largeVisit: 190,
+  },
+  warehouse: {
+    label: 'Industrial/Warehouse',
+    description: 'Logistics & Storage',
+    ratePerSqFt: 0.10, 
+  },
+  hoa: {
+    label: 'HOA/Apartment',
+    description: 'Common Area Maintenance',
+    small: 1100,
+    medium: 2600,
+    large: 5500,
+  },
+  hotel: {
+    label: 'Hospitality/Hotel',
+    description: 'Back-of-House & Public',
+    perRoom: 15,
+    publicSqFt: 0.17,
+  },
+  government: {
+    label: 'Government',
+    description: 'Municipal & Public Bldgs',
+    hourlyRate: 52,
+  }
 };
 
-export const PRESET_ROOMS: Omit<RoomType, 'id' | 'quantity'>[] = [
-  { name: 'Classroom', minutesPerRoom: 15 },
-  { name: 'Laboratory (Science/Computer)', minutesPerRoom: 17 },
-  { name: 'Library', minutesPerRoom: 60 },
-  { name: 'Cafeteria', minutesPerRoom: 60 },
-  { name: 'Gymnasium', minutesPerRoom: 60 },
-  { name: 'Auditorium', minutesPerRoom: 60 },
-  { name: 'Office (Admin/Principal)', minutesPerRoom: 5 },
-  { name: 'Staff Room', minutesPerRoom: 15 },
-  { name: 'Music Room', minutesPerRoom: 15 },
-  { name: 'Art Room', minutesPerRoom: 17 },
-  { name: 'Storage Room', minutesPerRoom: 5 },
-  { name: 'Restroom', minutesPerRoom: 15 },
-  { name: 'Locker Room', minutesPerRoom: 20 },
-  { name: 'Hallway', minutesPerRoom: 20 },
-  { name: 'Staircase', minutesPerRoom: 15 },
-  { name: 'Entryway/Lobby', minutesPerRoom: 15 },
-  { name: 'Nurse\'s Office', minutesPerRoom: 7 },
-  { name: 'Special Education Room', minutesPerRoom: 15 },
-  { name: 'Multipurpose Room', minutesPerRoom: 15 },
-  { name: 'Athletic Field', minutesPerRoom: 60 },
-  { name: 'Playground', minutesPerRoom: 60 },
-  { name: 'Parking Lot', minutesPerRoom: 60 },
-  { name: 'Outdoor Common Areas', minutesPerRoom: 60 },
-  { name: 'Conference Room', minutesPerRoom: 15 },
-  { name: 'Teacher\'s Lounge', minutesPerRoom: 15 },
-  { name: 'Counseling Office', minutesPerRoom: 7 },
-  { name: 'Janitorial Closet', minutesPerRoom: 5 },
-  { name: 'Mechanical Room', minutesPerRoom: 5 },
-  { name: 'IT Room', minutesPerRoom: 10 },
-];
-
-export const DEFAULT_ROOMS: RoomType[] = [
-  { id: '1', name: 'Classroom', quantity: 35, minutesPerRoom: 15 },
-  { id: '2', name: 'Cafeteria', quantity: 2, minutesPerRoom: 60 },
-  { id: '3', name: 'Office (Admin/Principal)', quantity: 5, minutesPerRoom: 5 },
-  { id: '4', name: 'Restroom', quantity: 20, minutesPerRoom: 15 },
-  { id: '5', name: 'Staircase', quantity: 6, minutesPerRoom: 15 },
-  { id: '6', name: 'Gymnasium', quantity: 1, minutesPerRoom: 60 },
-];
-
-export const DEFAULT_PORTERS: PorterService[] = [
-  { id: 'p1', name: 'Day Porter', quantity: 0, hoursPerDay: 8 },
-];
-
+// Constant for UI animation staggered delays
 export const ANIMATION_DELAY = 100;
+
+// Presets for room types by industry used in the calculator
+export const PRESET_ROOMS: Record<string, { name: string; minutesPerRoom: number }[]> = {
+  education: [
+    { name: 'Classroom', minutesPerRoom: 15 },
+    { name: 'Restroom', minutesPerRoom: 20 },
+    { name: 'Office', minutesPerRoom: 10 },
+    { name: 'Hallway', minutesPerRoom: 15 },
+    { name: 'Cafeteria', minutesPerRoom: 45 },
+    { name: 'Gymnasium', minutesPerRoom: 60 },
+  ],
+  office: [
+    { name: 'Private Office', minutesPerRoom: 10 },
+    { name: 'Conference Room', minutesPerRoom: 20 },
+    { name: 'Open Workspace', minutesPerRoom: 30 },
+    { name: 'Kitchen/Breakroom', minutesPerRoom: 25 },
+    { name: 'Restroom', minutesPerRoom: 20 },
+  ],
+  medical: [
+    { name: 'Exam Room', minutesPerRoom: 20 },
+    { name: 'Waiting Area', minutesPerRoom: 25 },
+    { name: 'Lab', minutesPerRoom: 30 },
+    { name: 'Restroom', minutesPerRoom: 20 },
+  ],
+  retail: [
+    { name: 'Sales Floor', minutesPerRoom: 40 },
+    { name: 'Stock Room', minutesPerRoom: 20 },
+    { name: 'Restroom', minutesPerRoom: 15 },
+  ],
+  warehouse: [
+    { name: 'Dock Area', minutesPerRoom: 30 },
+    { name: 'Office', minutesPerRoom: 10 },
+    { name: 'Restroom', minutesPerRoom: 15 },
+  ],
+  hoa: [
+    { name: 'Lobby', minutesPerRoom: 30 },
+    { name: 'Corridor', minutesPerRoom: 20 },
+    { name: 'Gym', minutesPerRoom: 45 },
+    { name: 'Clubhouse', minutesPerRoom: 60 },
+  ],
+  hotel: [
+    { name: 'Guest Room', minutesPerRoom: 30 },
+    { name: 'Lobby', minutesPerRoom: 40 },
+    { name: 'Public Restroom', minutesPerRoom: 20 },
+  ],
+  government: [
+    { name: 'Public Office', minutesPerRoom: 15 },
+    { name: 'Waiting Room', minutesPerRoom: 20 },
+    { name: 'Restroom', minutesPerRoom: 20 },
+  ],
+};

@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { LeadData, QuoteCalculations, ClientInfo, RoomType } from '../types';
+import { LeadData, QuoteCalculations, ClientInfo, RoomType, IndustryType, ServiceType } from '../types';
 import { Mail, Phone, Building2, User, CheckCircle2, ShieldCheck, Lock, ArrowRight } from './ui/Icons';
 import emailjs from '@emailjs/browser';
 
@@ -7,6 +8,9 @@ interface LeadFormProps {
   quote: QuoteCalculations;
   clientInfo: ClientInfo;
   rooms: RoomType[];
+  // Fix: Separated industry and serviceType from clientInfo to maintain type safety
+  industry: IndustryType;
+  serviceType: ServiceType;
   initialEmail?: string; 
   onSubmit: (data: LeadData) => void;
   onSchedule: () => void;
@@ -20,7 +24,7 @@ const EMAILJS_TEMPLATE_ID_INTERNAL = "template_12yvcvz";
 const EMAILJS_PUBLIC_KEY = "4ye26ZtWxpi6Pkk5f";
 const INTERNAL_RECIPIENT = "info@thetotalfacility.com";
 
-const LeadForm: React.FC<LeadFormProps> = ({ quote, clientInfo, rooms, initialEmail, onSubmit, onSchedule, onReset }) => {
+const LeadForm: React.FC<LeadFormProps> = ({ quote, clientInfo, rooms, industry, serviceType, initialEmail, onSubmit, onSchedule, onReset }) => {
   const [formData, setFormData] = useState<LeadData>({
     name: '',
     company: '',
@@ -38,9 +42,12 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, clientInfo, rooms, initialEm
       name: clientInfo.name || prev.name,
       email: initialEmail || clientInfo.email || prev.email, 
       phone: clientInfo.phone || prev.phone,
-      company: (!prev.company && clientInfo.address) ? clientInfo.address : prev.company
+      company: (!prev.company && clientInfo.address) ? clientInfo.address : prev.company,
+      // Fix: Syncing industry and serviceType from props into form data
+      industry,
+      serviceType
     }));
-  }, [clientInfo, initialEmail]);
+  }, [clientInfo, initialEmail, industry, serviceType]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

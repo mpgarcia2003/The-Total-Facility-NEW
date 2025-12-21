@@ -1,15 +1,21 @@
+
 import React, { useState } from 'react';
-import { RoomType } from '../types';
+import { RoomType, IndustryType } from '../types';
 import { Plus, Minus, Trash2 } from './ui/Icons';
 import { ANIMATION_DELAY, PRESET_ROOMS } from '../constants';
 
 interface RoomListProps {
   rooms: RoomType[];
   onChange: (rooms: RoomType[]) => void;
+  // Fix: Added industry prop to fetch correct presets
+  industry: IndustryType;
 }
 
-const RoomList: React.FC<RoomListProps> = ({ rooms, onChange }) => {
+const RoomList: React.FC<RoomListProps> = ({ rooms, onChange, industry }) => {
   const [selectedPreset, setSelectedPreset] = useState<string>("");
+
+  // Fix: Get presets for the specific selected industry
+  const industryPresets = PRESET_ROOMS[industry] || [];
 
   const handleUpdate = (id: string, field: keyof RoomType, value: number | string) => {
     const newRooms = rooms.map(r => r.id === id ? { ...r, [field]: value } : r);
@@ -34,7 +40,8 @@ const RoomList: React.FC<RoomListProps> = ({ rooms, onChange }) => {
     const presetName = e.target.value;
     if (!presetName) return;
 
-    const preset = PRESET_ROOMS.find(p => p.name === presetName);
+    // Fix: Using industryPresets array instead of the PRESET_ROOMS object
+    const preset = industryPresets.find(p => p.name === presetName);
     if (preset) {
       const newId = Math.random().toString(36).substr(2, 9);
       onChange([...rooms, { 
@@ -70,7 +77,8 @@ const RoomList: React.FC<RoomListProps> = ({ rooms, onChange }) => {
               className="appearance-none bg-slate-50 border border-slate-200 text-slate-600 text-sm rounded-2xl pl-6 pr-10 py-3 focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none font-medium cursor-pointer"
             >
               <option value="">+ Add Room Type...</option>
-              {PRESET_ROOMS.map((preset) => (
+              {/* Fix: Iterating over industryPresets array */}
+              {industryPresets.map((preset) => (
                 <option key={preset.name} value={preset.name}>
                   {preset.name}
                 </option>

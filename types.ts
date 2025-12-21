@@ -1,3 +1,7 @@
+
+export type IndustryType = 'education' | 'office' | 'medical' | 'retail' | 'warehouse' | 'hoa' | 'hotel' | 'government';
+export type ServiceType = 'recurring' | 'onetime';
+
 export interface RoomType {
   id: string;
   name: string;
@@ -5,6 +9,7 @@ export interface RoomType {
   minutesPerRoom: number;
 }
 
+// Added PorterService interface to fix "has no exported member 'PorterService'" error in PorterList.tsx
 export interface PorterService {
   id: string;
   name: string;
@@ -13,14 +18,15 @@ export interface PorterService {
 }
 
 export interface PricingSettings {
-  daysInMonth: number;
-  hourlyRate: number;
-  porterHourlyRate: number;
-  
-  // Percentages
-  profitPct: number;
-  // Specialty Maintenance (Floor/Carpet) as a % of monthly cleaning labor, spread over 12 months
-  specialtyAnnualLaborFactor: number; 
+  industry: IndustryType;
+  serviceType: ServiceType;
+  squareFootage: number;
+  frequencyPerWeek: number;
+  hotelRooms: number;
+  buildingSize: 'small' | 'medium' | 'large' | 'luxury';
+  retailSize: 'small' | 'medium' | 'large';
+  laborHoursPerDay: number;
+  warehouseScrubbingSqFt: number;
 }
 
 export interface ClientInfo {
@@ -28,28 +34,16 @@ export interface ClientInfo {
   address: string;
   email: string;
   phone: string;
-  walkthroughDate: string;
 }
 
 export interface QuoteCalculations {
-  totalDailyMinutes: number;
-  totalDailyHours: number;
-  monthlyCleaningHours: number;
-  
-  // Base Costs (Pre-Markup)
-  baseCleaningLabor: number;
-  basePorterLabor: number;
-  
-  // Specialty (Amortized Pre-Markup)
-  amortizedSpecialtyLabor: number;
-
-  // Final Markup-ed Totals
-  cleaningTotal: number;
-  porterTotal: number;
-  specialtyTotal: number;
-  
-  // Grand Total
   grandTotal: number;
+  method: string;
+  justification: string;
+  breakdown: {
+    label: string;
+    value: number;
+  }[];
 }
 
 export interface LeadData {
@@ -57,6 +51,9 @@ export interface LeadData {
   company: string;
   email: string;
   phone: string;
-  bestTime: string;
-  notes: string;
+  industry?: IndustryType;
+  serviceType?: ServiceType;
+  quoteTotal?: number;
+  bestTime?: string;
+  notes?: string;
 }
