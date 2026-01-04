@@ -3,7 +3,6 @@ import {
   PricingSettings, 
   RoomType, 
   PorterService,
-  ClientInfo, 
   IndustryType,
   ServiceType
 } from './types';
@@ -29,7 +28,6 @@ import {
   Hotel,
   GanttChartSquare,
   ChevronLeft,
-  Info,
   CheckCircle2,
   Calendar,
   Layers,
@@ -37,7 +35,6 @@ import {
   Zap,
   Phone,
   X,
-  Clock,
   ClipboardCheck,
   HardHat,
   Globe,
@@ -204,32 +201,35 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* COMPLIANCE MARQUEE */}
-      <div className="bg-slate-50 py-10 border-b border-slate-100 relative">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] whitespace-nowrap">Standard of Excellence</div>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-30 grayscale hover:opacity-60 transition-opacity">
-            <div className="flex items-center gap-2 font-black text-2xl tracking-tighter"><ShieldCheck size={28}/> OSHA COMPLIANT</div>
-            <div className="flex items-center gap-2 font-black text-2xl tracking-tighter"><HardHat size={28}/> EPA SAFE</div>
-            <div className="flex items-center gap-2 font-black text-2xl tracking-tighter"><Globe size={28}/> LEED STANDARDS</div>
-            <div className="flex items-center gap-2 font-black text-2xl tracking-tighter"><ClipboardCheck size={28}/> HIPPA READY</div>
+      {/* COMPLIANCE MARQUEE - Forced single line with horizontal scroll fallback */}
+      <div className="bg-slate-50 py-10 border-b border-slate-100 relative overflow-x-auto no-scrollbar">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-start gap-12 whitespace-nowrap min-w-max">
+          <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Standard of Excellence</div>
+          <div className="flex items-center gap-12 opacity-30 grayscale hover:opacity-60 transition-opacity">
+            <div className="flex items-center gap-2 font-black text-xl"><ShieldCheck size={24}/> OSHA COMPLIANT</div>
+            <div className="flex items-center gap-2 font-black text-xl"><HardHat size={24}/> EPA SAFE</div>
+            <div className="flex items-center gap-2 font-black text-xl"><Globe size={24}/> LEED STANDARDS</div>
+            <div className="flex items-center gap-2 font-black text-xl"><ClipboardCheck size={24}/> HIPAA READY</div>
           </div>
         </div>
       </div>
 
-      {/* CORE CAPABILITIES GRID - INTERACTIVE MODALS ADDED */}
+      {/* CORE CAPABILITIES GRID - Pushed heading to far left to prevent card overlap */}
       <section ref={industriesSectionRef} className="py-32 bg-white scroll-mt-24">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-3 gap-16">
-            <div className="lg:col-span-1 space-y-6">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-16">
+            {/* Left side: Heading - col-span-5 and positioned at the start of the grid */}
+            <div className="lg:col-span-5 space-y-6 lg:pr-12">
                <span className="text-brand-accent text-[10px] font-black uppercase tracking-[0.4em] mb-4 block">Our Expertise</span>
-               <h2 className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none">Sector <br />Specialization.</h2>
-               <p className="text-slate-500 font-medium leading-relaxed">Multi-million dollar contracts require specialized knowledge. Click a competency to view our technical capability statement for that sector.</p>
+               {/* Heading size slightly reduced for better container fit, no negative tracking */}
+               <h2 className="text-5xl lg:text-[68px] font-black text-slate-900 leading-[1.1] tracking-tight">Sector <br />Specialization.</h2>
+               <p className="text-slate-500 font-medium leading-relaxed max-w-sm">Multi-million dollar contracts require specialized knowledge. Click a competency to view our technical capability statement for that sector.</p>
                <div className="pt-6">
                  <button onClick={() => setIsSchedulerOpen(true)} className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-brand-accent hover:gap-5 transition-all">Download All Sector Packages <ArrowRight size={14}/></button>
                </div>
             </div>
-            <div className="lg:col-span-2 grid sm:grid-cols-2 gap-8">
+            {/* Right side: Cards - col-span-7 */}
+            <div className="lg:col-span-7 grid sm:grid-cols-2 gap-6 lg:gap-8">
                {[
                  { id: 'healthcare', t: 'Terminal Cleaning', d: 'Terminal cleaning for medical clinics and surgical centers with pathogen logs.', i: <Stethoscope size={24}/> },
                  { id: 'education', t: 'Campus Logistics', d: 'Integrated day-porter staffing for K-12 networks and high-traffic higher-ed.', i: <GraduationCap size={24}/> },
@@ -261,7 +261,7 @@ const App: React.FC = () => {
            <div className="space-y-10">
               <div>
                 <span className="text-brand-accent text-[10px] font-black uppercase tracking-[0.4em] mb-4 block">Liability & Verification</span>
-                <h2 className="text-5xl lg:text-7xl font-black tracking-tighter leading-none mb-8">Asset Protection <br />Through Coverage.</h2>
+                <h2 className="text-5xl lg:text-7xl font-black leading-none mb-8 tracking-tighter">Asset Protection <br />Through Coverage.</h2>
                 <p className="text-lg text-slate-400 font-medium">Enterprise vendors must protect the client’s bottom line. We maintain industry-leading insurance limits to ensure your asset is covered against every eventuality.</p>
               </div>
               <div className="grid gap-8">
@@ -306,14 +306,14 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      {/* STRATEGIC BUDGETING */}
+      {/* STRATEGIC BUDGETING / CALCULATOR */}
       <section id="quote-section" ref={quoteSectionRef} className="py-32 bg-slate-50 relative scroll-mt-24">
         <div className="max-w-7xl mx-auto px-6">
           {wizardStep === 'industry' && (
-            <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-               <div className="text-center mb-16">
+            <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 text-center">
+               <div className="mb-16">
                  <span className="text-brand-accent text-xs font-black uppercase tracking-[0.4em] mb-4 block">Step 1 of 3</span>
-                 <h2 id="quote-title" className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter">Get Your Quote.</h2>
+                 <h2 className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tight">Get Your Quote.</h2>
                  <p className="text-slate-500 mt-4 font-medium text-lg max-w-2xl mx-auto">Select your sector to initialize the custom labor allocation calculation for your portfolio.</p>
                </div>
                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
@@ -337,12 +337,13 @@ const App: React.FC = () => {
             </div>
           )}
 
+          {/* STEP 2: RESTORED OBJECTIVE SELECTION */}
           {wizardStep === 'objective' && (
             <div className="animate-in fade-in slide-in-from-right-8 duration-700">
                <div className="text-center mb-16">
                  <button onClick={() => setWizardStep('industry')} className="text-brand-accent text-[10px] font-black uppercase tracking-widest mb-6 inline-flex items-center gap-2 hover:translate-x-[-4px] transition-transform"><ChevronLeft size={14} /> Back to Sector</button>
                  <span className="text-brand-accent text-xs font-black uppercase tracking-[0.4em] mb-4 block">Step 2 of 3</span>
-                 <h2 className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter">Budgetary Objective.</h2>
+                 <h2 className="text-5xl lg:text-7xl font-black text-slate-900 tracking-tight">Budgetary Objective.</h2>
                </div>
                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                  <button onClick={() => selectObjective('recurring')} className="group p-12 bg-white border-2 border-slate-100 rounded-[3rem] text-left hover:border-brand-accent hover:shadow-2xl transition-all">
@@ -361,6 +362,7 @@ const App: React.FC = () => {
             </div>
           )}
 
+          {/* STEP 3: CALCULATOR */}
           {wizardStep === 'calculator' && (
             <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
                <div className="flex items-center justify-between mb-12 pb-6 border-b border-slate-200">
@@ -370,6 +372,7 @@ const App: React.FC = () => {
                  </div>
                  <button onClick={resetApp} className="text-slate-400 hover:text-slate-900 text-[10px] font-black uppercase tracking-widest">Start New Assessment</button>
                </div>
+               
                <div className="grid lg:grid-cols-12 gap-12 items-start">
                   <div className="lg:col-span-8 space-y-12">
                     <div className="bg-white border border-slate-200 rounded-[3rem] p-10 md:p-14 shadow-sm">
@@ -386,98 +389,56 @@ const App: React.FC = () => {
                             </div>
                           </div>
                         )}
+                        {/* Hotel logic */}
                         {settings.industry === 'hotel' && (
                            <div className="space-y-12">
                               <div className="p-8 bg-teal-50/50 border border-teal-100 rounded-[2rem] space-y-8">
                                 <h4 className="text-xl font-black text-slate-900 flex items-center gap-3"><Hotel className="text-brand-accent" size={24} /> BOH Operational Support</h4>
                                 <div className="space-y-6">
                                   <div className="flex justify-between items-end">
-                                    <label id="hotel-rooms-label" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Managed Keys</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Managed Keys</label>
                                     <span className="text-3xl font-black text-brand-accent">{settings.hotelRooms} <span className="text-sm text-slate-400">Rooms</span></span>
                                   </div>
-                                  <input type="range" min="10" max="1000" step="10" value={settings.hotelRooms} onChange={e => setSettings({...settings, hotelRooms: parseInt(e.target.value)})} className="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-accent" aria-labelledby="hotel-rooms-label"/>
+                                  <input type="range" min="10" max="1000" step="10" value={settings.hotelRooms} onChange={e => setSettings({...settings, hotelRooms: parseInt(e.target.value)})} className="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-accent"/>
                                 </div>
                               </div>
                               <div className="p-8 bg-slate-50 border border-slate-200 rounded-[2rem] space-y-8">
                                 <h4 className="text-xl font-black text-slate-900 flex items-center gap-3"><Layers className="text-brand-accent" size={24} /> Public Area Logistics</h4>
                                 <div className="space-y-6">
                                   <div className="flex justify-between items-end">
-                                    <label id="hotel-sqft-label" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Common Sq Ft</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Common Sq Ft</label>
                                     <span className="text-3xl font-black text-brand-accent">{settings.squareFootage.toLocaleString()} <span className="text-sm text-slate-400">SQ FT</span></span>
                                   </div>
-                                  <input type="range" min="1000" max="150000" step="5000" value={settings.squareFootage} onChange={e => setSettings({...settings, squareFootage: parseInt(e.target.value)})} className="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-accent" aria-labelledby="hotel-sqft-label"/>
+                                  <input type="range" min="1000" max="150000" step="5000" value={settings.squareFootage} onChange={e => setSettings({...settings, squareFootage: parseInt(e.target.value)})} className="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-accent"/>
                                 </div>
                               </div>
                            </div>
                         )}
-                        {settings.industry !== 'education' && settings.industry !== 'hotel' && (
+                        {/* Generic square footage industries */}
+                        {['office', 'medical', 'warehouse', 'retail', 'hoa', 'government'].includes(settings.industry) && settings.industry !== 'hotel' && (
                           <div className="space-y-12">
-                            {(['office', 'medical', 'warehouse'].includes(settings.industry)) && (
-                              <div className="space-y-6">
-                                <div className="flex justify-between items-end">
-                                  <label id="sqft-range-label" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Portfolio Square Footage</label>
-                                  <span className="text-3xl font-black text-brand-accent">{settings.squareFootage.toLocaleString()} <span className="text-sm text-slate-400">SQ FT</span></span>
+                            {['office', 'medical', 'warehouse'].includes(settings.industry) && (
+                               <div className="space-y-6">
+                                  <div className="flex justify-between items-end">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Portfolio Square Footage</label>
+                                    <span className="text-3xl font-black text-brand-accent">{settings.squareFootage.toLocaleString()} <span className="text-sm text-slate-400">SQ FT</span></span>
+                                  </div>
+                                  <input type="range" min="1000" max="100000" step="1000" value={settings.squareFootage} onChange={e => setSettings({...settings, squareFootage: parseInt(e.target.value)})} className="w-full h-3 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-brand-accent"/>
                                 </div>
-                                <input type="range" min="1000" max="100000" step="1000" value={settings.squareFootage} onChange={e => setSettings({...settings, squareFootage: parseInt(e.target.value)})} className="w-full h-3 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-brand-accent" aria-labelledby="sqft-range-label"/>
-                              </div>
                             )}
                             {settings.industry === 'retail' && (
-                              <div className="grid md:grid-cols-2 gap-12">
-                                <div className="space-y-6">
-                                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Store Scale</label>
-                                  <div className="grid gap-3" role="radiogroup">
-                                    {[
-                                      { id: 'small', label: 'Boutique/Showroom', d: '1-3k sqft' },
-                                      { id: 'medium', label: 'Mid-Market Store', d: '3-7k sqft' },
-                                      { id: 'large', label: 'Big Box/Anchor', d: '7k+ sqft' },
-                                    ].map(tier => (
-                                      <button key={tier.id} onClick={() => setSettings({...settings, retailSize: tier.id as any})} className={`p-6 rounded-2xl text-left border-2 transition-all ${settings.retailSize === tier.id ? 'border-brand-accent bg-teal-50 text-teal-800' : 'border-slate-100 bg-slate-50 text-slate-400'}`} aria-checked={settings.retailSize === tier.id}>
-                                        <div className="font-black">{tier.label}</div>
-                                        <div className="text-[10px] font-bold opacity-60 uppercase">{tier.d}</div>
-                                      </button>
-                                    ))}
+                               <div className="grid md:grid-cols-2 gap-12">
+                                  <div className="space-y-6">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Store Scale</label>
+                                    <div className="grid gap-3">
+                                      {[{id:'small',l:'Boutique',d:'1-3k'},{id:'medium',l:'Mid-Market',d:'3-7k'},{id:'large',l:'Big Box',d:'7k+'}].map(t => (
+                                        <button key={t.id} onClick={() => setSettings({...settings, retailSize: t.id as any})} className={`p-6 rounded-2xl text-left border-2 transition-all ${settings.retailSize === t.id ? 'border-brand-accent bg-teal-50 text-teal-800' : 'border-slate-100 bg-slate-50 text-slate-400'}`}>
+                                          <div className="font-black">{t.l}</div><div className="text-[10px] font-bold opacity-60 uppercase">{t.d}</div>
+                                        </button>
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                                <div className="space-y-6">
-                                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sanitation Cycles</label>
-                                  <div className="grid grid-cols-4 gap-2" role="radiogroup">
-                                    {[1, 2, 3, 5, 7].map(num => (
-                                      <button key={num} onClick={() => setSettings({...settings, frequencyPerWeek: num})} className={`py-6 rounded-2xl font-black transition-all ${settings.frequencyPerWeek === num ? 'bg-brand-accent text-white shadow-lg' : 'bg-slate-50 text-slate-400'}`} aria-checked={settings.frequencyPerWeek === num}>
-                                        {num}x
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            {settings.industry === 'hoa' && (
-                              <div className="space-y-6">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Building Portfolio Class</label>
-                                <div className="grid md:grid-cols-2 gap-4" role="radiogroup">
-                                  {[
-                                    { id: 'small', label: 'Small Bldgs (2-4 Fl)', d: 'Low-Rise Logistics' },
-                                    { id: 'medium', label: 'Mid-Rise (5-12 Fl)', d: 'Elevator Management' },
-                                    { id: 'large', label: 'High-Rise (13+ Fl)', d: 'Full Amenity Care' },
-                                    { id: 'luxury', label: 'Luxury Portfolio', d: 'Elite Concierge Care' },
-                                  ].map(tier => (
-                                    <button key={tier.id} onClick={() => setSettings({...settings, buildingSize: tier.id as any})} className={`p-8 rounded-[2rem] text-left border-2 flex justify-between items-center transition-all ${settings.buildingSize === tier.id ? 'border-brand-accent bg-teal-50 text-teal-800' : 'border-slate-100 bg-slate-50 text-slate-400'}`} aria-checked={settings.buildingSize === tier.id}>
-                                      <div><div className="font-black text-lg mb-1">{tier.label}</div><div className="text-[10px] font-bold opacity-60 uppercase tracking-widest">{tier.d}</div></div>
-                                      {settings.buildingSize === tier.id && <CheckCircle2 size={24} aria-hidden="true"/>}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {(settings.industry === 'warehouse' || settings.industry === 'government') && (
-                              <div className="space-y-10">
-                                <div className="space-y-6">
-                                  <div className="flex justify-between items-end">
-                                    <label id="labor-hours-label" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Target Daily Labor Allocation</label>
-                                    <span className="text-3xl font-black text-brand-accent">{settings.laborHoursPerDay} <span className="text-sm text-slate-400">HRS / DAY</span></span>
-                                  </div>
-                                  <input type="range" min="4" max="40" step="2" value={settings.laborHoursPerDay} onChange={e => setSettings({...settings, laborHoursPerDay: parseInt(e.target.value)})} className="w-full h-3 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-brand-accent" aria-labelledby="labor-hours-label"/>
-                                </div>
-                              </div>
+                               </div>
                             )}
                           </div>
                         )}
@@ -485,7 +446,7 @@ const App: React.FC = () => {
                     </div>
                     <div className="mt-12">
                       <LeadForm 
-                        quote={quote as any} 
+                        quote={quote} 
                         industry={settings.industry} 
                         serviceType={settings.serviceType} 
                         rooms={rooms} 
@@ -495,9 +456,10 @@ const App: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <aside className="lg:col-span-4 lg:sticky lg:top-32 space-y-8" aria-live="polite">
+
+                  <aside className="lg:col-span-4 lg:sticky lg:top-32">
                     {!isUnlocked ? (
-                      <div className="bg-[#0f172a] text-white p-12 rounded-[3rem] shadow-2xl text-center space-y-8 animate-in zoom-in-95 duration-500">
+                      <div className="bg-[#0f172a] text-white p-12 rounded-[3rem] shadow-2xl text-center space-y-8">
                         <div className="w-20 h-20 bg-white/5 rounded-[2rem] flex items-center justify-center mx-auto text-brand-accent border border-white/10"><Lock size={40}/></div>
                         <div>
                           <h4 className="text-3xl font-black tracking-tighter mb-4">Strategic Model Ready</h4>
@@ -507,12 +469,12 @@ const App: React.FC = () => {
                       </div>
                     ) : (
                       <div className="bg-[#0f172a] text-white p-12 rounded-[3rem] shadow-2xl border border-white/5 animate-in zoom-in-95 duration-500">
-                        <div className="space-y-10">
+                        <div className="space-y-10 text-left">
                           <div>
                             <span className="text-brand-accent text-[10px] font-black uppercase tracking-[0.4em] block mb-4">Target Monthly Labor Budget</span>
-                            <div className="text-5xl font-black tracking-tighter break-words">
+                            <div className="text-5xl font-black tracking-tighter">
                               {formatCurrency(quote.grandTotal)}
-                              {settings.serviceType === 'recurring' && <span className="text-xl text-slate-500 ml-1">/mo</span>}
+                              <span className="text-xl text-slate-500 ml-1">/mo</span>
                             </div>
                           </div>
                           <div className="space-y-4">
@@ -527,9 +489,7 @@ const App: React.FC = () => {
                             <div className="flex items-center gap-2 text-teal-400"><FileText size={14}/><span className="text-[10px] font-black uppercase tracking-widest">Pricing Strategy</span></div>
                             <p className="text-[11px] text-slate-400 italic leading-relaxed font-medium">"{quote.justification}"</p>
                           </div>
-                          <div className="flex items-center justify-center gap-2 text-[8px] text-slate-600 font-black uppercase tracking-[0.3em] pt-6 border-t border-white/5">
-                            <ShieldCheck size={12}/> Fully Managed • Enterprise Ready
-                          </div>
+                          <button onClick={() => setIsSchedulerOpen(true)} className="w-full py-5 bg-white text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 transition-all">Schedule Site Audit</button>
                         </div>
                       </div>
                     )}
@@ -541,7 +501,7 @@ const App: React.FC = () => {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-[#0f172a] text-white py-24 border-t border-white/5" aria-label="Site Footer">
+      <footer className="bg-[#0f172a] text-white py-24 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-24">
           <div className="space-y-8">
             <div className="flex items-center gap-4">
@@ -553,7 +513,7 @@ const App: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-12 text-slate-400 font-bold">
             <div className="space-y-4">
               <h4 className="text-white text-xs uppercase tracking-widest">Enterprise Support</h4>
-              <p className="text-brand-accent text-3xl font-black tracking-tighter" aria-label="Phone Number">(844) 454-3101</p>
+              <p className="text-brand-accent text-3xl font-black tracking-tighter">(844) 454-3101</p>
               <p className="text-[10px] text-slate-600 uppercase tracking-widest">© 2024 Total Facility Services LLC. All rights reserved.</p>
             </div>
           </div>

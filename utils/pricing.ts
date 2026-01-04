@@ -33,7 +33,12 @@ export const calculateQuote = (
       
       grandTotal = baseEducationCost + porterCost;
       method = "Integrated Campus Labor Model";
-      justification = "Labor allocation based on standardized facility-space metrics and dedicated on-site day porter staffing for high-traffic zones.";
+      
+      const hasPorters = porters.some(p => p.quantity > 0);
+      justification = hasPorters 
+        ? "Labor allocation based on standardized facility-space metrics and integrated on-site day porter staffing for high-traffic zones."
+        : "Labor allocation optimized for standardized facility-space metrics and core campus maintenance cycles.";
+        
       breakdown.push(
         { label: "Core Maintenance Labor", value: baseEducationCost },
         { label: "Day Porter Staffing", value: porterCost }
