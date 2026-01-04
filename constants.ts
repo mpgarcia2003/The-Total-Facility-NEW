@@ -1,4 +1,3 @@
-
 import { IndustryType } from './types';
 
 export const INDUSTRY_CONFIG = {
@@ -60,6 +59,7 @@ export const PRESET_ROOMS: Record<string, { name: string; minutesPerRoom: number
     { name: 'Office', minutesPerRoom: 10 },
     { name: 'Hallway', minutesPerRoom: 15 },
     { name: 'Cafeteria', minutesPerRoom: 45 },
+    { name: 'Auditorium', minutesPerRoom: 45 },
     { name: 'Gymnasium', minutesPerRoom: 60 },
   ],
   office: [

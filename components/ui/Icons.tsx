@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Calculator, 
@@ -29,14 +28,20 @@ import {
   ChevronDown,
   X,
   AlertCircle,
-  // Added missing icons requested by App.tsx
   Store,
   Warehouse,
   Hotel,
   GanttChartSquare,
   ChevronLeft,
   Info,
-  Layers
+  Layers,
+  FileText,
+  ClipboardCheck,
+  HardHat,
+  Truck,
+  Upload,
+  FileCheck,
+  ShieldAlert
 } from 'lucide-react';
 
 export {
@@ -68,12 +73,18 @@ export {
   ChevronDown,
   X,
   AlertCircle,
-  // Added missing icons requested by App.tsx
   Store,
   Warehouse,
   Hotel,
   GanttChartSquare,
   ChevronLeft,
   Info,
-  Layers
+  Layers,
+  FileText,
+  ClipboardCheck,
+  HardHat,
+  Truck,
+  Upload,
+  FileCheck,
+  ShieldAlert
 };
