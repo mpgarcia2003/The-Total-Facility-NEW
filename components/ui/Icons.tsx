@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Calculator, 
@@ -41,7 +42,9 @@ import {
   Truck,
   Upload,
   FileCheck,
-  ShieldAlert
+  ShieldAlert,
+  // Fix: Added missing Loader2 icon
+  Loader2
 } from 'lucide-react';
 
 export {
@@ -86,5 +89,7 @@ export {
   Truck,
   Upload,
   FileCheck,
-  ShieldAlert
+  ShieldAlert,
+  // Fix: Added missing Loader2 icon export
+  Loader2
 };

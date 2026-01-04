@@ -9,7 +9,6 @@ export interface RoomType {
   minutesPerRoom: number;
 }
 
-// Added PorterService interface to fix "has no exported member 'PorterService'" error in PorterList.tsx
 export interface PorterService {
   id: string;
   name: string;
@@ -29,11 +28,18 @@ export interface PricingSettings {
   warehouseScrubbingSqFt: number;
 }
 
-export interface ClientInfo {
-  name: string;
-  address: string;
-  email: string;
-  phone: string;
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  author: string;
+  date: string;
+  readTime: string;
+  excerpt: string;
+  content: string;
+  image: string;
+  isCited?: boolean;
 }
 
 export interface QuoteCalculations {
