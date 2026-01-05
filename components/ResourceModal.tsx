@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, FileText, Mail, User, Building2, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
+import { leadService } from '../utils/leadService';
 import emailjs from '@emailjs/browser';
 
 interface ResourceModalProps {
@@ -10,9 +11,7 @@ interface ResourceModalProps {
 
 const EMAILJS_SERVICE_ID = "service_srv6b3k"; 
 const EMAILJS_TEMPLATE_ID_QUOTE = "template_ljs0669"; 
-const EMAILJS_TEMPLATE_ID_INTERNAL = "template_12yvcvz"; 
 const EMAILJS_PUBLIC_KEY = "4ye26ZtWxpi6Pkk5f";
-const INTERNAL_RECIPIENT = "info@thetotalfacility.com";
 
 const ResourceModal: React.FC<ResourceModalProps> = ({ isOpen, onClose }) => {
   const [submitted, setSubmitted] = useState(false);
@@ -32,21 +31,30 @@ const ResourceModal: React.FC<ResourceModalProps> = ({ isOpen, onClose }) => {
     if (isSending) return;
     setIsSending(true);
 
-    const formattedTime = new Date().toLocaleString('en-US', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-
-    const baseParams = {
-      from_name: "TOTAL FACILITY SERVICES LLC",
-      name: formData.name, company: formData.company, email: formData.email,
-      phone: "Requested via Resource Download", quote_total: "Technical Package Request", 
-      time: formattedTime, reply_to: formData.email,
-      notes: `Lead requested documentation for their organization (${formData.company}).`
-    };
-
     try {
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID_INTERNAL, { ...baseParams, to_email: INTERNAL_RECIPIENT }, EMAILJS_PUBLIC_KEY);
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID_QUOTE, { ...baseParams, to_email: formData.email }, EMAILJS_PUBLIC_KEY);
+      // 1. CAPTURE LEAD DATA via LeadService (Sheets + Internal Alert)
+      await leadService.submitLead({
+        name: formData.name,
+        email: formData.email,
+        company: formData.company,
+        funnel_stage: 'RESOURCE',
+        notes: `User requested Capability Statement and Technical Packages.`
+      });
+
+      // 2. Send Automated Confirmation (EmailJS)
+      await emailjs.send(
+        EMAILJS_SERVICE_ID, 
+        EMAILJS_TEMPLATE_ID_QUOTE, 
+        { 
+          to_email: formData.email,
+          name: formData.name,
+          company: formData.company,
+          quote_total: "Technical Package Request",
+          industry: "All Sectors"
+        }, 
+        EMAILJS_PUBLIC_KEY
+      );
+
       setSubmitted(true);
     } catch (err) {
       console.error("Transmission Error:", err);
@@ -117,7 +125,7 @@ const ResourceModal: React.FC<ResourceModalProps> = ({ isOpen, onClose }) => {
                   className="w-full bg-brand-accent hover:bg-brand-accentLight text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-[11px] shadow-xl shadow-brand-accent/20 transition-all flex items-center justify-center gap-3 disabled:opacity-70 active:scale-[0.98]"
                 >
                   {isSending ? (
-                    <><Loader2 className="animate-spin" size={18} /> Verifying...</>
+                    <><Loader2 className="animate-spin" size={18} /> CAPTURING...</>
                   ) : (
                     <>Download Technical Packages <ArrowRight size={16} /></>
                   )}

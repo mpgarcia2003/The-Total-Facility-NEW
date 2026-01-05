@@ -1,5 +1,5 @@
 
-export type IndustryType = 'education' | 'office' | 'medical' | 'retail' | 'warehouse' | 'hoa' | 'hotel' | 'government';
+export type IndustryType = 'education' | 'office' | 'medical' | 'retail' | 'warehouse' | 'hoa' | 'hotel' | 'government' | 'church' | 'fitness' | 'daycare';
 export type ServiceType = 'recurring' | 'onetime';
 
 export interface RoomType {
@@ -22,10 +22,16 @@ export interface PricingSettings {
   squareFootage: number;
   frequencyPerWeek: number;
   hotelRooms: number;
+  churchCapacity: number;
+  seatingType: 'pews' | 'chairs';
   buildingSize: 'small' | 'medium' | 'large' | 'luxury';
   retailSize: 'small' | 'medium' | 'large';
   laborHoursPerDay: number;
   warehouseScrubbingSqFt: number;
+  showerCount: number; 
+  hasSauna: boolean; 
+  studentCount: number; // Added for Daycare
+  changingStations: number; // Added for Daycare
 }
 
 export interface BlogPost {

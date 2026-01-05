@@ -1,3 +1,4 @@
+
 import { PricingSettings, QuoteCalculations, RoomType, PorterService } from '../types';
 
 export const calculateQuote = (
@@ -11,8 +12,14 @@ export const calculateQuote = (
     frequencyPerWeek, 
     buildingSize, 
     hotelRooms, 
+    churchCapacity,
+    seatingType,
     retailSize,
     laborHoursPerDay,
+    showerCount,
+    hasSauna,
+    studentCount,
+    changingStations
   } = settings;
   
   let grandTotal = 0;
@@ -21,77 +28,102 @@ export const calculateQuote = (
   const breakdown: { label: string; value: number }[] = [];
 
   const DAYS_PER_MONTH = 21.67; 
+  const HOURLY_RATE = 25.50; // Standard labor rate for TFS
+
+  // Helper to calculate room-based labor
+  const calculateRoomLabor = (rmList: RoomType[]) => {
+    const dailyMins = rmList.reduce((acc, r) => acc + (r.quantity * r.minutesPerRoom), 0);
+    return (dailyMins / 60) * DAYS_PER_MONTH * HOURLY_RATE;
+  };
 
   switch (industry) {
-    case 'education':
-      let totalMins = rooms.reduce((acc, r) => acc + (r.quantity * r.minutesPerRoom), 0);
-      let monthlyHrs = (totalMins / 60) * 22;
-      let baseEducationCost = monthlyHrs * 18.50 * 1.35; 
-      
-      const porterHrs = porters.reduce((acc, p) => acc + (p.quantity * p.hoursPerDay), 0) * 22;
-      const porterCost = porterHrs * 24.50; 
-      
-      grandTotal = baseEducationCost + porterCost;
-      method = "Integrated Campus Labor Model";
-      
-      const hasPorters = porters.some(p => p.quantity > 0);
-      justification = hasPorters 
-        ? "Labor allocation based on standardized facility-space metrics and integrated on-site day porter staffing for high-traffic zones."
-        : "Labor allocation optimized for standardized facility-space metrics and core campus maintenance cycles.";
-        
+    case 'church':
+      const churchRoomLabor = calculateRoomLabor(rooms);
+      const capacityRate = seatingType === 'pews' ? 1.65 : 1.25; 
+      const sanctuaryLabor = (churchCapacity || 250) * capacityRate * 4.33; 
+      grandTotal = churchRoomLabor + sanctuaryLabor;
+      method = "Capacity-Driven Maintenance Model";
+      justification = `Calculated based on a ${churchCapacity}-seat sanctuary with ${seatingType} seating, accounting for high-traffic post-service turnover cycles.`;
       breakdown.push(
-        { label: "Core Maintenance Labor", value: baseEducationCost },
-        { label: "Day Porter Staffing", value: porterCost }
+        { label: "Sanctuary Intensive Care", value: sanctuaryLabor },
+        { label: "Administrative & Annex Areas", value: churchRoomLabor }
+      );
+      break;
+
+    case 'fitness':
+      const fitnessBase = squareFootage * 0.22;
+      const showerLabor = (showerCount || 0) * 45; // Surcharge per shower head
+      const saunaLabor = hasSauna ? 150 : 0;
+      grandTotal = fitnessBase + showerLabor + saunaLabor;
+      method = "High-Intensity Wellness Hygiene";
+      justification = `Optimized for high-frequency gym equipment sanitization and specialized 'Wet Area' maintenance for ${showerCount} shower units.`;
+      breakdown.push(
+        { label: "Floor & Equipment Hygiene", value: fitnessBase },
+        { label: "Wet Area Sanitation", value: showerLabor + saunaLabor }
+      );
+      break;
+
+    case 'daycare':
+      const daycareBase = calculateRoomLabor(rooms);
+      const disinfectionSurcharge = (studentCount || 20) * 18.50; // Enrollment-based touchpoint frequency
+      const stationLabor = (changingStations || 0) * 35;
+      grandTotal = daycareBase + disinfectionSurcharge + stationLabor;
+      method = "Child-Safe Managed Enrollment Model";
+      justification = `Managed protocol for ${studentCount} students focusing on daily disinfection of ${changingStations} changing stations using child-safe EPA N-List chemicals.`;
+      breakdown.push(
+        { label: "Core Facility Labor", value: daycareBase },
+        { label: "Disinfection Frequency Surcharge", value: disinfectionSurcharge + stationLabor }
+      );
+      break;
+
+    case 'medical':
+      grandTotal = squareFootage * 0.26;
+      method = "Sterile-Grade Terminal Cleaning";
+      justification = "Pricing based on clinical-level pathogens logs and high-intensity disinfection for medical suites.";
+      breakdown.push({ label: "Terminal Sanitation Labor", value: grandTotal });
+      break;
+
+    case 'education':
+      const coreEduLabor = calculateRoomLabor(rooms);
+      const porterHrs = porters.reduce((acc, p) => acc + (p.quantity * p.hoursPerDay), 0) * DAYS_PER_MONTH;
+      const porterCost = porterHrs * 24.50; 
+      grandTotal = coreEduLabor + porterCost;
+      method = "Integrated Campus Labor Model";
+      justification = "A hybrid model combining nightly academic sanitation with on-site Day Porter logistics for restroom rotations.";
+      breakdown.push(
+        { label: "Academic Area Maintenance", value: coreEduLabor },
+        { label: "Day Porter Logistics", value: porterCost }
       );
       break;
 
     case 'office':
       grandTotal = squareFootage * 0.15;
-      method = "Class-A Managed Maintenance";
-      justification = "Strategic labor allocation for high-visibility commercial real estate, amortizing seasonal deep cleaning into a fixed monthly model.";
-      breakdown.push({ label: "Portfolio Maintenance", value: grandTotal });
-      break;
-
-    case 'medical':
-      grandTotal = squareFootage * 0.26;
-      method = "Sterile-Grade Compliance Model";
-      justification = "Calculated via terminal cleaning standards for clinical environments, including pathogen control and sterile surface surfacing.";
-      breakdown.push({ label: "Compliance Sanitation", value: grandTotal });
-      break;
-
-    case 'retail':
-      let visitRate = 90;
-      if (retailSize === 'medium') visitRate = 135;
-      if (retailSize === 'large') visitRate = 190;
-      
-      grandTotal = visitRate * frequencyPerWeek * 4.33; 
-      method = "Retail Visit Amortization";
-      justification = "Standardized site-visit budgeting based on square footage tier and high-traffic sanitization frequency.";
-      breakdown.push({ label: "Store-Front Logistics", value: grandTotal });
-      break;
-
-    case 'hotel':
-      const bohCost = hotelRooms * 15; 
-      const publicCost = squareFootage * 0.17; 
-      grandTotal = (bohCost + publicCost);
-      method = "Hospitality Hybrid Model";
-      justification = "Allocates specialized labor for Back-of-House (BOH) support and premium Front-of-House (FOH) high-visibility upkeep.";
-      breakdown.push(
-        { label: "BOH Operational Support", value: bohCost },
-        { label: "FOH Public Visibility", value: publicCost }
-      );
+      method = "Class-A Portfolio Maintenance";
+      justification = "Managed precision focused on high-visibility lobby care and common area tenant retention.";
+      breakdown.push({ label: "Portfolio-Wide Logistics", value: grandTotal });
       break;
 
     case 'warehouse':
-      const scrubbingSqFt = settings.warehouseScrubbingSqFt || 5000;
       const laborCost = (laborHoursPerDay * DAYS_PER_MONTH) * 48; 
-      const scrubbingCost = (scrubbingSqFt * 0.10); 
+      const scrubbingCost = settings.warehouseScrubbingSqFt * 0.10;
       grandTotal = laborCost + scrubbingCost;
       method = "Industrial Performance Model";
-      justification = "Industrial-scale budgeting accounting for large-area floor scrubbing and 24/7 logistics labor requirements.";
+      justification = "Calculated for high-bay logistics with ride-on scrubber allocation for heavy floor maintenance.";
       breakdown.push(
-        { label: "Industrial Man-Hours", value: laborCost },
-        { label: "Asset Protection (Scrub)", value: scrubbingCost }
+        { label: "Managed Man-Hours", value: laborCost },
+        { label: "Machine Scrubbing Service", value: scrubbingCost }
+      );
+      break;
+
+    case 'hotel':
+      const guestSuppCost = hotelRooms * 15; 
+      const commonAreaCost = squareFootage * 0.17; 
+      grandTotal = guestSuppCost + commonAreaCost;
+      method = "Hospitality Support Framework";
+      justification = "Integrated BOH operational support with premium FOH public area visibility maintenance.";
+      breakdown.push(
+        { label: "BOH Operational Support", value: guestSuppCost },
+        { label: "FOH Public Visibility", value: commonAreaCost }
       );
       break;
 
@@ -100,27 +132,19 @@ export const calculateQuote = (
       else if (buildingSize === 'medium') grandTotal = 2600;
       else if (buildingSize === 'large') grandTotal = 3200;
       else grandTotal = 5500;
-      
-      method = "HOA Common-Area Fixed Plan";
-      justification = "Predictable common-area management based on amenity density and multi-family high-rise classification.";
-      breakdown.push({ label: "Common-Area Logistics", value: grandTotal });
-      break;
-
-    case 'government':
-      const govtLabor = (laborHoursPerDay * DAYS_PER_MONTH) * 52;
-      grandTotal = govtLabor;
-      method = "Municipal Staffing Framework";
-      justification = "Full-burden labor model for public-sector facilities, including specialized municipal compliance oversight.";
-      breakdown.push({ label: "Municipal Labor Allocation", value: govtLabor });
+      method = "Common-Area Amenity Pricing";
+      justification = "Predictable management for multi-family complexes based on amenity and corridor density.";
+      breakdown.push({ label: "Amenity Maintenance", value: grandTotal });
       break;
 
     default:
-      grandTotal = squareFootage * 0.15;
+      grandTotal = squareFootage * 0.18;
   }
 
+  // One-time service reduction logic
   if (settings.serviceType === 'onetime') {
-    grandTotal = grandTotal * 0.6;
-    method = "Project-Based Engagement";
+    grandTotal = grandTotal * 0.7; // Project based estimate is usually ~70% of a monthly full cycle
+    method = "Project-Based Scope Estimate";
   }
 
   return { grandTotal, method, justification, breakdown };

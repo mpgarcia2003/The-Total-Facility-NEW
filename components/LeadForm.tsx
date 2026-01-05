@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { LeadData, QuoteCalculations, RoomType, IndustryType, ServiceType } from '../types';
 import { Mail, Phone, Building2, User, CheckCircle2, ShieldCheck, Lock, ArrowRight, Upload, Info, Loader2 } from './ui/Icons';
+import { leadService } from '../utils/leadService';
 import emailjs from '@emailjs/browser';
 
 interface LeadFormProps {
@@ -16,9 +18,7 @@ interface LeadFormProps {
 
 const EMAILJS_SERVICE_ID = "service_srv6b3k"; 
 const EMAILJS_TEMPLATE_ID_QUOTE = "template_ljs0669"; // Customer Facing
-const EMAILJS_TEMPLATE_ID_INTERNAL = "template_12yvcvz"; // Owner Facing
 const EMAILJS_PUBLIC_KEY = "4ye26ZtWxpi6Pkk5f";
-const INTERNAL_RECIPIENT = "info@thetotalfacility.com";
 
 const LeadForm: React.FC<LeadFormProps> = ({ quote, industry, serviceType, initialEmail, onSubmit, onSchedule, onReset }) => {
   const [formData, setFormData] = useState<LeadData>({
@@ -46,35 +46,35 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, industry, serviceType, initi
     if (isSending) return;
     setIsSending(true);
 
-    const formattedTime = new Date().toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-
-    const baseParams = {
-      from_name: "TOTAL FACILITY SERVICES LLC",
-      name: formData.name,              
-      company: formData.company,        
-      phone: formData.phone,            
-      email: formData.email,
-      quote_total: `$${quote.grandTotal.toFixed(2)} / mo`, 
-      time: formattedTime,              
-      reply_to: formData.email,
-      notes: `Strategic Quote for ${industry} sector (${serviceType}). User Notes: ${formData.notes || 'None provided.'}`
-    };
-
     try {
-      // TRIPLE CAPTURE - STAGE 3: Full Quote Strategic Alert
-      await Promise.all([
-        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID_QUOTE, { ...baseParams, to_email: formData.email }, EMAILJS_PUBLIC_KEY),
-        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID_INTERNAL, { ...baseParams, to_email: INTERNAL_RECIPIENT }, EMAILJS_PUBLIC_KEY)
-      ]);
+      // 1. CAPTURE LEAD DATA via LeadService (Sheets + Internal Alert)
+      await leadService.submitLead({
+        name: formData.name,
+        email: formData.email,
+        company: formData.company,
+        phone: formData.phone,
+        quote_total: `$${quote.grandTotal.toFixed(2)} / mo`,
+        industry: industry,
+        funnel_stage: 'QUOTE',
+        notes: formData.notes
+      });
+
+      // 2. Send Automated Customer-Facing Quote (EmailJS)
+      await emailjs.send(
+        EMAILJS_SERVICE_ID, 
+        EMAILJS_TEMPLATE_ID_QUOTE, 
+        { 
+          to_email: formData.email,
+          name: formData.name,
+          company: formData.company,
+          quote_total: `$${quote.grandTotal.toFixed(2)} / mo`,
+          industry: industry
+        }, 
+        EMAILJS_PUBLIC_KEY
+      );
+
     } catch (err) {
-      console.error("Transmission Error:", err);
+      console.error("Submission Error:", err);
     } finally {
       setIsSending(false);
       setSubmitted(true);
