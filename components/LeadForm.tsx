@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { LeadData, QuoteCalculations, RoomType, IndustryType, ServiceType } from '../types';
-import { Mail, Phone, Building2, User, CheckCircle2, ShieldCheck, Lock, ArrowRight, Upload, Info } from './ui/Icons';
+import { Mail, Phone, Building2, User, CheckCircle2, ShieldCheck, Lock, ArrowRight, Upload, Info, Loader2 } from './ui/Icons';
 import emailjs from '@emailjs/browser';
 
 interface LeadFormProps {
@@ -16,8 +15,8 @@ interface LeadFormProps {
 }
 
 const EMAILJS_SERVICE_ID = "service_srv6b3k"; 
-const EMAILJS_TEMPLATE_ID_QUOTE = "template_ljs0669"; 
-const EMAILJS_TEMPLATE_ID_INTERNAL = "template_12yvcvz"; 
+const EMAILJS_TEMPLATE_ID_QUOTE = "template_ljs0669"; // Customer Facing
+const EMAILJS_TEMPLATE_ID_INTERNAL = "template_12yvcvz"; // Owner Facing
 const EMAILJS_PUBLIC_KEY = "4ye26ZtWxpi6Pkk5f";
 const INTERNAL_RECIPIENT = "info@thetotalfacility.com";
 
@@ -62,22 +61,25 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, industry, serviceType, initi
       company: formData.company,        
       phone: formData.phone,            
       email: formData.email,
-      quote_total: `$${quote.grandTotal.toFixed(2)}`, 
+      quote_total: `$${quote.grandTotal.toFixed(2)} / mo`, 
       time: formattedTime,              
       reply_to: formData.email,
-      notes: formData.notes
+      notes: `Strategic Quote for ${industry} sector (${serviceType}). User Notes: ${formData.notes || 'None provided.'}`
     };
 
     try {
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID_QUOTE, { ...baseParams, to_email: formData.email }, EMAILJS_PUBLIC_KEY);
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID_INTERNAL, { ...baseParams, to_email: INTERNAL_RECIPIENT }, EMAILJS_PUBLIC_KEY);
+      // TRIPLE CAPTURE - STAGE 3: Full Quote Strategic Alert
+      await Promise.all([
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID_QUOTE, { ...baseParams, to_email: formData.email }, EMAILJS_PUBLIC_KEY),
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID_INTERNAL, { ...baseParams, to_email: INTERNAL_RECIPIENT }, EMAILJS_PUBLIC_KEY)
+      ]);
     } catch (err) {
       console.error("Transmission Error:", err);
+    } finally {
+      setIsSending(false);
+      setSubmitted(true);
+      onSubmit(formData);
     }
-
-    setIsSending(false);
-    setSubmitted(true);
-    onSubmit(formData);
   };
 
   const handleChange = (field: keyof LeadData, value: string) => {
@@ -161,7 +163,7 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, industry, serviceType, initi
 
           <button type="submit" disabled={isSending} className="w-full group relative bg-brand-accent hover:bg-brand-accentLight text-white font-black py-5 rounded-2xl shadow-xl shadow-brand-accent/20 transition-all disabled:opacity-50 uppercase tracking-[0.2em] text-[10px] md:text-xs active:scale-[0.98]">
             <span className="flex items-center justify-center gap-3">
-              {isSending ? 'Sending Assessment...' : 'Request Enterprise Capability Statement'}
+              {isSending ? <><Loader2 className="animate-spin" size={16}/> Sending Full Quote...</> : 'Request Enterprise Capability Statement'}
               <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform hidden md:block" />
             </span>
           </button>

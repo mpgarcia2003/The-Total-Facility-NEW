@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   PricingSettings, 
@@ -53,6 +52,7 @@ import {
 } from './components/ui/Icons';
 
 // EmailJS Configuration (Shared)
+// Note: Ensure these IDs match your EmailJS Dashboard exactly
 const EMAILJS_SERVICE_ID = "service_srv6b3k"; 
 const EMAILJS_TEMPLATE_ID_INTERNAL = "template_12yvcvz"; 
 const EMAILJS_PUBLIC_KEY = "4ye26ZtWxpi6Pkk5f";
@@ -153,6 +153,7 @@ const App: React.FC = () => {
     });
 
     try {
+      // TRIPLE CAPTURE - STAGE 1: Instant Unlock Alert
       await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID_INTERNAL,
@@ -165,16 +166,18 @@ const App: React.FC = () => {
           quote_total: formatCurrency(quote.grandTotal),
           time: formattedTime,
           reply_to: unlockEmail,
-          notes: `User unlocked the pricing calculator for ${settings.industry} / ${settings.serviceType}.`
+          notes: `User unlocked the pricing calculator for ${settings.industry} / ${settings.serviceType}. This is an early-funnel lead.`
         },
         EMAILJS_PUBLIC_KEY
       );
+      setIsUnlocked(true);
     } catch (err) {
       console.error("Unlock lead capture error:", err);
+      // Still unlock even if email fails to not break user experience
+      setIsUnlocked(true);
+    } finally {
+      setIsUnlocking(false);
     }
-
-    setIsUnlocked(true);
-    setIsUnlocking(false);
   };
 
   const resetApp = () => {
@@ -585,7 +588,7 @@ const App: React.FC = () => {
                              />
                            </div>
                            <button type="submit" disabled={isUnlocking} className="w-full bg-brand-accent hover:bg-brand-accentLight py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-brand-accent/20 transition-all flex items-center justify-center gap-3">
-                             {isUnlocking ? <><Loader2 className="animate-spin" size={16}/> Initializing...</> : 'Unlock Target Quote'}
+                             {isUnlocking ? <><Loader2 className="animate-spin" size={16}/> CAPTURING...</> : 'Unlock Target Quote'}
                            </button>
                         </form>
                       </div>
