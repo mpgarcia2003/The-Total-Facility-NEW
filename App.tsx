@@ -18,7 +18,6 @@ import emailjs from '@emailjs/browser';
 // Components
 import RoomList from './components/RoomList';
 import PorterList from './components/PorterList';
-import LeadForm from './components/LeadForm';
 import SchedulingModal from './components/SchedulingModal';
 import BlogReader from './components/BlogReader';
 import { 
@@ -54,7 +53,10 @@ import {
   TrendingUp,
   Activity,
   Calculator,
-  PieChart
+  PieChart,
+  MapPin,
+  ShieldAlert,
+  BarChart3
 } from 'lucide-react';
 
 const EMAILJS_PUBLIC_KEY = "4ye26ZtWxpi6Pkk5f";
@@ -91,8 +93,6 @@ const App: React.FC = () => {
   });
 
   const [rooms, setRooms] = useState<RoomType[]>([]);
-  
-  // Initialize porters with 0 quantity
   const [porters, setPorters] = useState<PorterService[]>([
     { id: 'p1', name: 'Day Porter', quantity: 0, hoursPerDay: 8 }
   ]);
@@ -105,6 +105,7 @@ const App: React.FC = () => {
 
   const quoteSectionRef = useRef<HTMLDivElement>(null);
   const insightsSectionRef = useRef<HTMLDivElement>(null);
+  const aboutSectionRef = useRef<HTMLDivElement>(null);
 
   const quote = useMemo(() => calculateQuote(settings, rooms, porters), [settings, rooms, porters]);
 
@@ -138,17 +139,12 @@ const App: React.FC = () => {
   const selectIndustry = (industry: IndustryType) => {
     setSettings(prev => ({ ...prev, industry }));
     const industryPresets = PRESET_ROOMS[industry] || [];
-
-    // SET EVERYTHING TO 0 BY DEFAULT
-    const initialRooms: RoomType[] = industryPresets.map((p, idx) => {
-      return { 
-        id: `init-${idx}`, 
-        name: p.name, 
-        quantity: 0, 
-        minutesPerRoom: p.minutesPerRoom 
-      };
-    });
-    
+    const initialRooms: RoomType[] = industryPresets.map((p, idx) => ({ 
+      id: `init-${idx}`, 
+      name: p.name, 
+      quantity: 0, 
+      minutesPerRoom: p.minutesPerRoom 
+    }));
     setRooms(initialRooms);
     setWizardStep('objective');
   };
@@ -199,10 +195,8 @@ const App: React.FC = () => {
               <span className={`text-[8px] tracking-[0.4em] font-black uppercase ${isScrolled ? 'text-brand-accent' : 'text-white/60'}`}>Precision Labor</span>
             </div>
           </div>
-          <div className="flex items-center gap-8">
-            {isOwnerMode && (
-              <span className="bg-amber-400 text-amber-950 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest animate-pulse">Owner Logic Active</span>
-            )}
+          <div className="hidden md:flex items-center gap-8">
+            <button onClick={(e) => scrollTo(aboutSectionRef, e)} className={`text-xs font-black uppercase tracking-widest transition-colors ${isScrolled ? 'text-slate-600 hover:text-brand-accent' : 'text-white/80 hover:text-white'}`}>About</button>
             <button onClick={(e) => scrollTo(insightsSectionRef, e)} className={`text-xs font-black uppercase tracking-widest transition-colors ${isScrolled ? 'text-slate-600 hover:text-brand-accent' : 'text-white/80 hover:text-white'}`}>Insights</button>
             <button onClick={(e) => scrollTo(quoteSectionRef, e)} className="bg-brand-accent text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">Instant Quote</button>
           </div>
@@ -210,23 +204,97 @@ const App: React.FC = () => {
       </nav>
 
       {/* HERO */}
-      <header className="relative min-h-[85vh] flex items-center pt-20 bg-[#0f172a] overflow-hidden">
+      <header className="relative min-h-[95vh] flex items-center pt-20 bg-[#0f172a] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800"></div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 text-left">
-           <h1 className="text-6xl md:text-8xl lg:text-[110px] font-black text-white leading-[0.85] tracking-tighter mb-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-brand-accent/5 rounded-full blur-[150px]"></div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 text-left w-full">
+           <div className="mb-8 inline-flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-full animate-in fade-in slide-in-from-top-4 duration-700">
+             <span className="w-2 h-2 bg-brand-accentLight rounded-full animate-pulse"></span>
+             <span className="text-[10px] font-black text-white uppercase tracking-widest">Active Footprint: NY • FL • NJ • CT</span>
+           </div>
+           <h1 className="text-6xl md:text-8xl lg:text-[120px] font-black text-white leading-[0.85] tracking-tighter mb-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
             Precision <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accentLight to-teal-200">Facility Labor.</span>
           </h1>
-          <p className="text-slate-400 text-xl max-w-xl font-medium mb-12 animate-in fade-in slide-in-from-bottom-12 duration-1000">
-            Managed maintenance models for high-density academic campuses and commercial portfolios in NY, FL, NJ, and CT.
+          <p className="text-slate-400 text-xl md:text-2xl max-w-2xl font-medium mb-14 animate-in fade-in slide-in-from-bottom-12 duration-1000">
+            We provide strategic labor allocations and managed maintenance models for high-density academic campuses and commercial portfolios.
           </p>
-          <button onClick={(e) => scrollTo(quoteSectionRef, e)} className="px-10 py-5 bg-brand-accent text-white font-black rounded-2xl shadow-xl shadow-brand-accent/20 transition-all flex items-center gap-4 text-lg hover:bg-brand-accentLight">
-            Initialize Quote Engine <ArrowRight size={20} />
-          </button>
+          <div className="flex flex-wrap gap-6 animate-in fade-in slide-in-from-bottom-16 duration-1000">
+            <button onClick={(e) => scrollTo(quoteSectionRef, e)} className="px-10 py-5 bg-brand-accent text-white font-black rounded-2xl shadow-2xl shadow-brand-accent/30 transition-all flex items-center gap-4 text-lg hover:bg-brand-accentLight active:scale-[0.98]">
+              Initialize Quote Engine <ArrowRight size={20} />
+            </button>
+            <button onClick={(e) => scrollTo(aboutSectionRef, e)} className="px-10 py-5 bg-white/5 border border-white/10 text-white font-black rounded-2xl hover:bg-white/10 transition-all text-lg backdrop-blur-md">
+              Learn Methodology
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* WIZARD SECTION */}
+      {/* WHY TFS SECTION */}
+      <section ref={aboutSectionRef} className="py-32 bg-white scroll-mt-24">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
+            <div className="text-left">
+              <span className="text-brand-accent text-xs font-black uppercase tracking-[0.4em] mb-4 block">The Methodology</span>
+              <h2 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-none mb-10">Managed <br />Labor.</h2>
+              <p className="text-slate-500 text-xl font-medium leading-relaxed mb-10">
+                Large facilities fail when labor is unpredictable. Total Facility Services LLC bridges the gap between simple "janitorial" and true infrastructure management.
+              </p>
+              <div className="space-y-6">
+                {[
+                  { icon: <ShieldCheck size={24} />, title: "Risk Mitigation", text: "Background checked, GPS-verified staffing protocols." },
+                  { icon: <Zap size={24} />, title: "Asset Preservation", text: "Amortized floor and surface care built into daily models." },
+                  { icon: <BarChart3 size={24} />, title: "Fiscal Predictability", text: "Transparent monthly budgets with no hidden service bloat." },
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-6 items-start">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-brand-accent shrink-0 border border-slate-100">{item.icon}</div>
+                    <div>
+                      <h4 className="text-xl font-black text-slate-900 mb-1">{item.title}</h4>
+                      <p className="text-slate-500 font-medium">{item.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 bg-brand-accent/5 rounded-[4rem] -rotate-3 translate-x-4 translate-y-4"></div>
+              <div className="relative aspect-square rounded-[4rem] overflow-hidden shadow-2xl">
+                <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1000" className="w-full h-full object-cover" alt="Facility Management" />
+              </div>
+              <div className="absolute -bottom-10 -left-10 bg-[#0f172a] text-white p-10 rounded-[3rem] shadow-2xl max-w-xs animate-float">
+                <p className="text-4xl font-black text-brand-accent mb-2">100%</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">EPA N-List Compliance Verification</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTPRINT STATS */}
+      <section className="py-24 bg-slate-900 text-white overflow-hidden relative">
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+              <div>
+                <p className="text-6xl font-black text-brand-accent mb-2 tracking-tighter">4</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Northeast States</p>
+              </div>
+              <div>
+                <p className="text-6xl font-black text-brand-accent mb-2 tracking-tighter">1.5M+</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Sq Ft Managed</p>
+              </div>
+              <div>
+                <p className="text-6xl font-black text-brand-accent mb-2 tracking-tighter">ISO</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Pathogen Standards</p>
+              </div>
+              <div>
+                <p className="text-6xl font-black text-brand-accent mb-2 tracking-tighter">24/7</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Managed Support</p>
+              </div>
+           </div>
+        </div>
+      </section>
+
+      {/* WIZARD SECTION (QUOTE ENGINE) */}
       <section id="quote-section" ref={quoteSectionRef} className="py-32 bg-slate-50 relative scroll-mt-24">
         <div className="max-w-7xl mx-auto px-6">
           {wizardStep === 'industry' && (
@@ -332,13 +400,6 @@ const App: React.FC = () => {
                                 <span className="text-3xl font-black text-brand-accent">{settings.squareFootage.toLocaleString()} <span className="text-sm text-slate-400">Sq Ft</span></span>
                               </div>
                               <input type="range" min="5000" max="250000" step="5000" value={settings.squareFootage} onChange={e => setSettings({...settings, squareFootage: parseInt(e.target.value)})} className="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-accent"/>
-                              <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
-                                 <div>
-                                    <p className="text-sm font-black text-slate-900">Child-Safe Disinfection Package</p>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">EPA N-List Verified Chemistry</p>
-                                 </div>
-                                 <div className="w-12 h-6 bg-brand-accent rounded-full relative"><div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div></div>
-                              </div>
                            </div>
                         )}
                         
@@ -374,7 +435,6 @@ const App: React.FC = () => {
                         <PorterList porters={porters} onChange={setPorters} />
                       </div>
                     </div>
-                    <LeadForm quote={quote} rooms={rooms} industry={settings.industry} serviceType={settings.serviceType} initialEmail={unlockEmail} onSubmit={() => {}} onSchedule={() => setIsSchedulerOpen(true)} onReset={resetApp} />
                   </div>
 
                   <aside className="lg:col-span-4 lg:sticky lg:top-32">
@@ -408,7 +468,10 @@ const App: React.FC = () => {
                         <div className="bg-white/5 p-6 rounded-2xl border border-white/10 mb-8">
                           <p className="text-[11px] text-slate-400 italic font-medium">"{quote.justification}"</p>
                         </div>
-                        <button onClick={() => setIsSchedulerOpen(true)} className="w-full py-5 bg-white text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-slate-100 shadow-xl transition-all">Schedule site audit</button>
+                        <div className="space-y-4">
+                           <button onClick={() => setIsSchedulerOpen(true)} className="w-full py-5 bg-white text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-slate-100 shadow-xl transition-all">Schedule site audit</button>
+                           <button onClick={resetApp} className="w-full py-4 text-white/40 text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors">Start New Quote</button>
+                        </div>
                       </div>
                     )}
                   </aside>
@@ -418,20 +481,51 @@ const App: React.FC = () => {
         </div>
       </section>
 
+      {/* FOOTPRINT / MAPS CONCEPTUAL SECTION */}
+      <section className="py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+           <div className="grid lg:grid-cols-2 gap-20 items-center">
+             <div className="order-2 lg:order-1 relative">
+                <div className="bg-slate-50 aspect-[4/3] rounded-[3rem] overflow-hidden border border-slate-100 shadow-inner flex items-center justify-center group">
+                   <div className="text-center p-12">
+                     <MapPin size={48} className="text-brand-accent mx-auto mb-6 group-hover:scale-110 transition-transform"/>
+                     <h4 className="text-2xl font-black mb-4">Regional Portfolios</h4>
+                     <p className="text-slate-500 font-medium">We maintain a strategic workforce across the NY Metro, Florida, New Jersey, and Connecticut corridors.</p>
+                   </div>
+                </div>
+             </div>
+             <div className="order-1 lg:order-2 text-left">
+                <span className="text-brand-accent text-xs font-black uppercase tracking-[0.4em] mb-4 block">Deployment</span>
+                <h2 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-none mb-10">Tri-State <br />Coverage.</h2>
+                <p className="text-slate-500 text-xl font-medium leading-relaxed mb-8">
+                  Our managed model is designed for multi-site facility directors who need uniform performance across their entire regional footprint.
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                   {['New York', 'Florida', 'New Jersey', 'Connecticut'].map(state => (
+                     <div key={state} className="px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100 font-black text-slate-800 flex items-center gap-3">
+                        <CheckCircle2 size={16} className="text-brand-accent"/> {state}
+                     </div>
+                   ))}
+                </div>
+             </div>
+           </div>
+        </div>
+      </section>
+
       {/* INSIGHTS */}
-      <section id="insights" ref={insightsSectionRef} className="py-32 bg-white scroll-mt-24">
+      <section id="insights" ref={insightsSectionRef} className="py-32 bg-slate-50 scroll-mt-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
             <div className="text-left max-w-2xl">
               <span className="text-brand-accent text-xs font-black uppercase tracking-[0.4em] mb-4 block">Intelligence</span>
               <h2 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-tight">Sector <br />Analysis.</h2>
             </div>
-            <p className="text-slate-500 font-medium text-lg max-w-sm text-left">How managed labor models protect facility assets in multi-site Northeast portfolios.</p>
+            <p className="text-slate-500 font-medium text-lg max-w-sm text-left">How managed labor models protect facility assets in multi-site portfolios.</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
             {BLOG_POSTS.map((post) => (
-              <div key={post.id} className="group relative bg-slate-50 rounded-[3rem] overflow-hidden border border-slate-100 hover:border-brand-accent/30 transition-all">
+              <div key={post.id} className="group relative bg-white rounded-[3rem] overflow-hidden border border-slate-100 hover:border-brand-accent/30 transition-all shadow-sm hover:shadow-xl">
                 <div className="aspect-[16/9] overflow-hidden">
                   <img src={post.image} alt={post.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 </div>
