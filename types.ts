@@ -30,8 +30,8 @@ export interface PricingSettings {
   warehouseScrubbingSqFt: number;
   showerCount: number; 
   hasSauna: boolean; 
-  studentCount: number; // Added for Daycare
-  changingStations: number; // Added for Daycare
+  studentCount: number;
+  changingStations: number;
 }
 
 export interface BlogPost {
@@ -48,10 +48,20 @@ export interface BlogPost {
   isCited?: boolean;
 }
 
+export interface InternalBreakdown {
+  laborCost: number;
+  suppliesCost: number;
+  overheadCost: number;
+  netProfit: number;
+  profitMargin: number;
+  totalMonthlyHours: number;
+}
+
 export interface QuoteCalculations {
   grandTotal: number;
   method: string;
   justification: string;
+  internal?: InternalBreakdown;
   breakdown: {
     label: string;
     value: number;
