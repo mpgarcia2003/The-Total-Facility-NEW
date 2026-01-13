@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { LeadData, QuoteCalculations, RoomType, IndustryType, ServiceType } from '../types';
 import { Mail, Phone, Building2, User, CheckCircle2, ShieldCheck, Lock, ArrowRight, Upload, Info, Loader2 } from './ui/Icons';
 import { leadService } from '../utils/leadService';
-import emailjs from '@emailjs/browser';
 
 interface LeadFormProps {
   quote: QuoteCalculations;
@@ -15,10 +14,6 @@ interface LeadFormProps {
   onSchedule: () => void;
   onReset?: () => void;
 }
-
-const EMAILJS_SERVICE_ID = "service_srv6b3k"; 
-const EMAILJS_TEMPLATE_ID_QUOTE = "template_ljs0669"; // Customer Facing
-const EMAILJS_PUBLIC_KEY = "4ye26ZtWxpi6Pkk5f";
 
 const LeadForm: React.FC<LeadFormProps> = ({ quote, industry, serviceType, initialEmail, onSubmit, onSchedule, onReset }) => {
   const [formData, setFormData] = useState<LeadData>({
@@ -47,7 +42,7 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, industry, serviceType, initi
     setIsSending(true);
 
     try {
-      // 1. CAPTURE LEAD DATA via LeadService (Sheets + Internal Alert)
+      // Submit lead to Google Apps Script (Sheets + Email notifications)
       await leadService.submitLead({
         name: formData.name,
         email: formData.email,
@@ -58,20 +53,6 @@ const LeadForm: React.FC<LeadFormProps> = ({ quote, industry, serviceType, initi
         funnel_stage: 'QUOTE',
         notes: formData.notes
       });
-
-      // 2. Send Automated Customer-Facing Quote (EmailJS)
-      await emailjs.send(
-        EMAILJS_SERVICE_ID, 
-        EMAILJS_TEMPLATE_ID_QUOTE, 
-        { 
-          to_email: formData.email,
-          name: formData.name,
-          company: formData.company,
-          quote_total: `$${quote.grandTotal.toFixed(2)} / mo`,
-          industry: industry
-        }, 
-        EMAILJS_PUBLIC_KEY
-      );
 
     } catch (err) {
       console.error("Submission Error:", err);

@@ -1,28 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, CheckCircle2, FileText, Mail, User, Building2, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 import { leadService } from '../utils/leadService';
-import emailjs from '@emailjs/browser';
 
 interface ResourceModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const EMAILJS_SERVICE_ID = "service_srv6b3k"; 
-const EMAILJS_TEMPLATE_ID_QUOTE = "template_ljs0669"; 
-const EMAILJS_PUBLIC_KEY = "4ye26ZtWxpi6Pkk5f";
-
 const ResourceModal: React.FC<ResourceModalProps> = ({ isOpen, onClose }) => {
   const [submitted, setSubmitted] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [formData, setFormData] = useState({ name: '', company: '', email: '' });
-
-  useEffect(() => {
-    if (isOpen) {
-      emailjs.init(EMAILJS_PUBLIC_KEY);
-    }
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -32,7 +21,7 @@ const ResourceModal: React.FC<ResourceModalProps> = ({ isOpen, onClose }) => {
     setIsSending(true);
 
     try {
-      // 1. CAPTURE LEAD DATA via LeadService (Sheets + Internal Alert)
+      // CAPTURE LEAD DATA via LeadService (Google Apps Script Webhook)
       await leadService.submitLead({
         name: formData.name,
         email: formData.email,
@@ -41,23 +30,10 @@ const ResourceModal: React.FC<ResourceModalProps> = ({ isOpen, onClose }) => {
         notes: `User requested Capability Statement and Technical Packages.`
       });
 
-      // 2. Send Automated Confirmation (EmailJS)
-      await emailjs.send(
-        EMAILJS_SERVICE_ID, 
-        EMAILJS_TEMPLATE_ID_QUOTE, 
-        { 
-          to_email: formData.email,
-          name: formData.name,
-          company: formData.company,
-          quote_total: "Technical Package Request",
-          industry: "All Sectors"
-        }, 
-        EMAILJS_PUBLIC_KEY
-      );
-
       setSubmitted(true);
     } catch (err) {
       console.error("Transmission Error:", err);
+      // Still show success to user if Webhook fails in no-cors mode (expected behavior)
       setSubmitted(true);
     } finally {
       setIsSending(false);

@@ -13,7 +13,6 @@ import { formatCurrency } from './utils/format';
 import { leadService } from './utils/leadService';
 import { BLOG_POSTS } from './data/blogPosts';
 import { PRESET_ROOMS } from './constants';
-import emailjs from '@emailjs/browser';
 
 // Components
 import RoomList from './components/RoomList';
@@ -58,8 +57,6 @@ import {
   ShieldAlert,
   BarChart3
 } from 'lucide-react';
-
-const EMAILJS_PUBLIC_KEY = "4ye26ZtWxpi6Pkk5f";
 
 const LogoIcon = ({ className = "w-10 h-10", light = false }: { className?: string, light?: boolean }) => (
   <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -110,7 +107,6 @@ const App: React.FC = () => {
   const quote = useMemo(() => calculateQuote(settings, rooms, porters), [settings, rooms, porters]);
 
   useEffect(() => {
-    emailjs.init(EMAILJS_PUBLIC_KEY);
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -160,9 +156,7 @@ const App: React.FC = () => {
     setIsUnlocking(true);
     try {
       await leadService.submitLead({
-        name: "Quick Unlock",
         email: unlockEmail,
-        company: "Website Inquiry",
         funnel_stage: 'UNLOCK',
         industry: settings.industry,
         quote_total: formatCurrency(quote.grandTotal)
